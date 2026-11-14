@@ -1,28 +1,22 @@
-%% Pacotes (seção 5.2): dependências em uma direção; o modelo não depende de ninguém.
+%% Pacotes: as dependências descem da visão ao modelo; o modelo não depende de ninguém.
 flowchart LR
     aplicacao["Aplicacao<br/><small>monta e liga tudo</small>"]
     visao["visao<br/><small>janelas e painéis Swing</small>"]
-    controle["controle<br/><small>recebe eventos, toca o som</small>"]
-    negocio["negocio<br/><small>FachadaUrna e serviços</small>"]
-    persistencia["persistencia<br/>persistencia.supabase<br/><small>repositórios e JDBC</small>"]
-    som["som<br/><small>efeitos sonoros</small>"]
-    excecao["excecao<br/><small>erros da aplicação</small>"]
-
-    subgraph nucleo["modelo (núcleo: só o JDK)"]
-        modelo["modelo<br/><small>Cargo, Partido</small>"]
-        candidato["modelo.candidato"]
-        voto["modelo.voto"]
-        sessao["modelo.sessao"]
-    end
+    controle["controle<br/><small>recebe as teclas</small>"]
+    negocio["negocio<br/><small>FachadaUrna</small>"]
+    persistencia["persistencia<br/><small>Supabase e memória</small>"]
+    modelo["modelo<br/><small>Cargo, Partido, Candidato,<br/>Voto, SessaoVotacao</small>"]
+    som["som"]
+    excecao["excecao"]
 
     aplicacao -.-> visao
     visao -.-> controle
-    visao -.-> nucleo
+    visao -.-> modelo
     controle -.-> negocio
     controle -.-> som
-    controle -.-> nucleo
+    controle -.-> modelo
     negocio -.-> persistencia
+    negocio -.-> modelo
     negocio -.-> excecao
-    negocio -.-> nucleo
+    persistencia -.-> modelo
     persistencia -.-> excecao
-    persistencia -.-> nucleo

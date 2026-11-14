@@ -1,0 +1,103 @@
+%% Classes do modelo.
+classDiagram
+    direction TB
+
+    class Cargo {
+        <<enumeration>>
+        PRESIDENTE
+        GOVERNADOR
+        SENADOR
+        DEPUTADOFEDERAL
+        DEPUTADOESTADUAL
+        +getQuantidadeDigitos() int
+        +getDescricao() String
+        +possuiVice() boolean
+        +possuiSuplentes() boolean
+        +listarEmOrdemDeVotacao()$ List~Cargo~
+    }
+
+    class Partido {
+        -long identificador
+        -int numero
+        -String sigla
+        -String nome
+        +correspondeAoPrefixo(String numeroCandidato) boolean
+    }
+
+    class Candidato {
+        <<abstract>>
+        -long identificador
+        -Cargo cargo
+        -String numero
+        -String nome
+        -Partido partido
+        -byte[] foto
+        +criar(...)$ Candidato
+        +copiarComIdentificador(long) Candidato
+        +getFoto() byte[]
+        +obterLinhasAdicionais()* List~String~
+        +getComplementos()* List~String~
+        -validarNumero() void
+    }
+
+    class CandidatoComVice {
+        -String nomeVice
+    }
+    class CandidatoSenador {
+        -String nomePrimeiroSuplente
+        -String nomeSegundoSuplente
+    }
+    class CandidatoDeputado
+
+    class Voto {
+        <<abstract>>
+        -Cargo cargo
+        +getCandidato() Candidato
+        +getTipo()* String
+        +contabilizarEm(ApuracaoCargo)* void
+    }
+    class VotoCandidato {
+        -Candidato candidato
+    }
+    class VotoBranco
+    class VotoNulo
+
+    class ApuracaoCargo {
+        -Map~Candidato,Integer~ votosPorCandidato
+        -int votosBrancos
+        -int votosNulos
+        +registrarVotoParaCandidato(Candidato) void
+        +registrarVotoBranco() void
+        +registrarVotoNulo() void
+        +getTotalDeVotos() int
+        +listarCandidatosPorVotos() List~Candidato~
+    }
+
+    class SessaoVotacao {
+        -List~Cargo~ cargos
+        -StringBuilder digitos
+        -List~Voto~ votos
+        -Candidato candidatoEncontrado
+        -Situacao situacao
+        +digitar(char) void
+        +corrigir() void
+        +votarEmBranco() void
+        +confirmar() boolean
+        +getAviso() String
+        +permiteConfirmar() boolean
+        +estaEncerrada() boolean
+        +getVotos() List~Voto~
+    }
+
+    Candidato <|-- CandidatoComVice
+    Candidato <|-- CandidatoSenador
+    Candidato <|-- CandidatoDeputado
+    Candidato "*" --> "1" Partido
+    Candidato --> Cargo
+    Voto <|-- VotoCandidato
+    Voto <|-- VotoBranco
+    Voto <|-- VotoNulo
+    VotoCandidato --> Candidato
+    Voto ..> ApuracaoCargo : contabilizarEm
+    SessaoVotacao --> Candidato : procura
+    SessaoVotacao "1" o-- "0..5" Voto

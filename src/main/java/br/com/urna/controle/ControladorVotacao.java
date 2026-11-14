@@ -1,41 +1,36 @@
 /*
- * Urna Eletrônica - projeto acadêmico de simulação de votação.
+ * Urna Eletrônica
  * Arquivo: ControladorVotacao.java
  * Autor: João
- * Criado em: 2026-11-07
  */
 
 package br.com.urna.controle;
 
-import br.com.urna.modelo.sessao.SessaoVotacao;
-import br.com.urna.modelo.voto.Voto;
+import br.com.urna.modelo.SessaoVotacao;
+import br.com.urna.modelo.Voto;
 import br.com.urna.negocio.FachadaUrna;
-import br.com.urna.som.EfeitoSonoro;
 import br.com.urna.som.ReprodutorSom;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
 /**
- * Controlador da urna (MVC): recebe as teclas da tela, toca o som, repassa a
- * tecla à sessão de votação e grava os votos em segundo plano ao fim de cada eleitor.
+ * Controlador da urna: recebe as teclas, toca o som, repassa a tecla à sessão
+ * e grava os votos ao fim de cada eleitor.
  * <p>
- * Carregar o catálogo e gravar os votos rodam em {@link SwingWorker}, para a
- * janela não congelar (RNF06). Se a gravação falhar, os votos continuam na
- * sessão atual e nada é descartado (RNF09): a urna pergunta se tenta de novo e,
- * se a resposta for não, a tecla CONFIRMA na tela FIM faz nova tentativa.
- * Todos os métodos públicos devem ser chamados na thread de eventos do Swing.
+ * Carregar os candidatos e gravar os votos rodam em {@link SwingWorker}, para a
+ * janela não travar. Se a gravação falhar, os votos continuam na sessão e a
+ * tecla CONFIRMA na tela FIM tenta gravar de novo.
  *
  * @author João
- * @since 1.0
  */
 public class ControladorVotacao {
 
-    /** Tempo, em milissegundos, que a tela FIM fica visível antes do próximo eleitor (decisão 0005). */
-    public static final int ESPERAPADRAOEMMILISSEGUNDOS = 3000;
+    private static final int ESPERAANTESDOPROXIMOELEITOR = 3000;
 
-    private final ReprodutorSom reprodutorSom;
+    private final ReprodutorSom som;
 
     private FachadaUrna fachada;
 
@@ -43,9 +38,7 @@ public class ControladorVotacao {
 
     private VisaoVotacao visao;
 
-    private SessaoVotacao sessaoAtual;
-
-    private int esperaAntesDeReiniciar = ESPERAPADRAOEMMILISSEGUNDOS;
+    private SessaoVotacao sessao;
 
     private boolean gravacaoPendente;
 
@@ -54,238 +47,157 @@ public class ControladorVotacao {
     /**
      * Cria o controlador.
      *
-     * @param fachada       porta de entrada da camada de negócio
-     * @param reprodutorSom reprodutor dos efeitos sonoros
-     * @throws IllegalArgumentException se algum argumento for {@code null}
+     * @param fachada porta de entrada da camada de negócio
+     * @param som     reprodutor dos sons da urna
      */
-    public ControladorVotacao(FachadaUrna fachada, ReprodutorSom reprodutorSom) {
-        if (fachada == null || reprodutorSom == null) {
-            throw new IllegalArgumentException("O controlador precisa da fachada e do reprodutor de som.");
-        }
+    public ControladorVotacao(FachadaUrna fachada, ReprodutorSom som) {
         this.fachada = fachada;
-        this.reprodutorSom = reprodutorSom;
+        this.som = som;
     }
 
-    // ---- Configuração ----
-
-    /**
-     * Liga o controlador à tela. Precisa ser chamado antes de {@link #iniciar()}.
-     *
-     * @param visao tela da urna
-     */
     public void definirVisao(VisaoVotacao visao) {
         this.visao = visao;
     }
 
     /**
-     * Define a fachada com dados em memória oferecida quando o banco não responde
-     * na abertura (seção 9.2). Sem ela, a urna só oferece tentar de novo.
+     * Define a fachada com dados em memória, oferecida se o banco não responder.
      *
-     * @param fachadaDemonstracao fachada sobre repositórios em memória
+     * @param fachadaDemonstracao fachada sobre o repositório em memória
      */
-    public void definirFachadaDeDemonstracao(FachadaUrna fachadaDemonstracao) {
+    public void definirFachadaDemonstracao(FachadaUrna fachadaDemonstracao) {
         this.fachadaDemonstracao = fachadaDemonstracao;
     }
 
-    /**
-     * Define quanto tempo a tela FIM fica visível antes do próximo eleitor.
-     *
-     * @param milissegundos espera em milissegundos; 0 reinicia logo após a gravação
-     * @throws IllegalArgumentException se o valor for negativo
-     */
-    public void definirEsperaAntesDeReiniciar(int milissegundos) {
-        if (milissegundos < 0) {
-            throw new IllegalArgumentException("A espera não pode ser negativa.");
-        }
-        this.esperaAntesDeReiniciar = milissegundos;
-    }
-
-    // ---- Abertura da urna ----
-
-    /**
-     * Mostra "carregando", lê partidos, candidatos e fotos em segundo plano e
-     * abre a sessão do primeiro eleitor.
-     *
-     * @throws IllegalStateException se a visão não tiver sido definida
-     */
+    /** Carrega os candidatos em segundo plano e abre a sessão do primeiro eleitor. */
     public void iniciar() {
-        if (visao == null) {
-            throw new IllegalStateException("Defina a visão antes de iniciar a urna.");
-        }
-        carregarDados();
-    }
-
-    private void carregarDados() {
         visao.exibirCarregando();
-        FachadaUrna fachadaEmUso = fachada;
-        new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() {
-                fachadaEmUso.carregarDadosEleitorais();
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    get();
-                    iniciarNovaSessao();
-                } catch (ExecutionException erro) {
-                    tratarFalhaDeCarga(erro.getCause());
-                } catch (InterruptedException erro) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }.execute();
+        executarEmSegundoPlano(fachada::carregarDados, this::iniciarNovaSessao, this::tratarFalhaDeCarga);
     }
-
-    private void tratarFalhaDeCarga(Throwable causa) {
-        String mensagem = "Não foi possível carregar os candidatos.\n" + causa.getMessage();
-        if (visao.perguntarSeTentaNovamente(mensagem)) {
-            carregarDados();
-        } else if (fachadaDemonstracao != null && fachadaDemonstracao != fachada
-                && visao.perguntarSeUsaDemonstracao()) {
-            fachada = fachadaDemonstracao;
-            carregarDados();
-        } else {
-            visao.encerrar();
-        }
-    }
-
-    // ---- Teclas do eleitor ----
 
     /**
-     * Trata uma tecla numérica: toca o som de tecla e repassa o dígito à sessão.
+     * Trata uma tecla numérica.
      *
      * @param digito dígito de '0' a '9'
      */
     public void aoPressionarDigito(char digito) {
         if (estaRecebendoVotos()) {
-            reprodutorSom.reproduzir(EfeitoSonoro.TECLA);
-            sessaoAtual.digitar(digito);
+            som.tocarTecla();
+            sessao.digitar(digito);
+            visao.atualizar(sessao);
         }
     }
 
-    /** Trata a tecla BRANCO: toca o som de tecla e repassa à sessão. */
+    /** Trata a tecla BRANCO. */
     public void aoPressionarBranco() {
         if (estaRecebendoVotos()) {
-            reprodutorSom.reproduzir(EfeitoSonoro.TECLA);
-            sessaoAtual.votarEmBranco();
+            som.tocarTecla();
+            sessao.votarEmBranco();
+            visao.atualizar(sessao);
         }
     }
 
-    /** Trata a tecla CORRIGE: toca o som de tecla e repassa à sessão. */
+    /** Trata a tecla CORRIGE. */
     public void aoPressionarCorrige() {
         if (estaRecebendoVotos()) {
-            reprodutorSom.reproduzir(EfeitoSonoro.TECLA);
-            sessaoAtual.corrigir();
+            som.tocarTecla();
+            sessao.corrigir();
+            visao.atualizar(sessao);
         }
     }
 
     /**
-     * Trata a tecla CONFIRMA. Com voto aceito, toca o som de confirmação ou, no
-     * último cargo, o som de fim e grava os votos. Um CONFIRMA recusado (número
-     * incompleto) não toca nada. Na tela FIM com gravação pendente, tenta gravar de novo.
+     * Trata a tecla CONFIRMA. No último cargo, toca o som de fim e grava os votos.
+     * Na tela FIM com votos não gravados, tenta gravar de novo.
      */
     public void aoPressionarConfirma() {
-        if (sessaoAtual == null) {
+        if (sessao == null || gravando) {
             return;
         }
         if (gravacaoPendente) {
-            if (!gravando) {
-                gravarVotos();
-            }
+            gravarVotos();
             return;
         }
-        if (!sessaoAtual.confirmar()) {
+        if (!sessao.confirmar()) {
             return;
         }
-        if (sessaoAtual.estaEncerrada()) {
-            reprodutorSom.reproduzir(EfeitoSonoro.FIM);
+        visao.atualizar(sessao);
+        if (sessao.estaEncerrada()) {
+            som.tocarFim();
             gravacaoPendente = true;
             gravarVotos();
         } else {
-            reprodutorSom.reproduzir(EfeitoSonoro.CONFIRMACAO);
+            som.tocarConfirmacao();
         }
+    }
+
+    public boolean possuiVotosNaoGravados() {
+        return gravacaoPendente;
     }
 
     private boolean estaRecebendoVotos() {
-        return sessaoAtual != null && !sessaoAtual.estaEncerrada();
+        return sessao != null && !sessao.estaEncerrada();
     }
-
-    // ---- Gravação dos votos (RN11 e RNF09) ----
 
     private void gravarVotos() {
         gravando = true;
-        List<Voto> votos = sessaoAtual.getVotosRegistrados();
         FachadaUrna fachadaEmUso = fachada;
-        new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() {
-                fachadaEmUso.registrarVotos(votos);
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                gravando = false;
-                try {
-                    get();
-                    gravacaoPendente = false;
-                    agendarNovaSessao();
-                } catch (ExecutionException erro) {
-                    tratarFalhaDeGravacao(erro.getCause());
-                } catch (InterruptedException erro) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }.execute();
+        List<Voto> votos = sessao.getVotos();
+        executarEmSegundoPlano(() -> fachadaEmUso.registrarVotos(votos), this::agendarNovaSessao,
+                this::tratarFalhaDeGravacao);
     }
-
-    private void tratarFalhaDeGravacao(Throwable causa) {
-        String mensagem = "Os votos deste eleitor ainda não foram gravados.\n" + causa.getMessage();
-        if (visao.perguntarSeTentaNovamente(mensagem)) {
-            gravarVotos();
-        } else {
-            visao.exibirErro("Os votos continuam guardados na memória da urna.\n"
-                    + "Aperte CONFIRMA para tentar gravar de novo.");
-        }
-    }
-
-    // ---- Próximo eleitor ----
 
     private void agendarNovaSessao() {
-        if (esperaAntesDeReiniciar == 0) {
-            iniciarNovaSessao();
-            return;
-        }
-        Timer temporizador = new Timer(esperaAntesDeReiniciar, evento -> iniciarNovaSessao());
+        gravando = false;
+        gravacaoPendente = false;
+        Timer temporizador = new Timer(ESPERAANTESDOPROXIMOELEITOR, evento -> iniciarNovaSessao());
         temporizador.setRepeats(false);
         temporizador.start();
     }
 
     private void iniciarNovaSessao() {
-        if (sessaoAtual != null) {
-            sessaoAtual.removerOuvinte(visao);
+        sessao = fachada.iniciarSessao();
+        visao.atualizar(sessao);
+    }
+
+    private void tratarFalhaDeCarga(Throwable causa) {
+        if (visao.perguntarSeTentaNovamente("Não foi possível carregar os candidatos.\n" + causa.getMessage())) {
+            iniciar();
+        } else if (fachadaDemonstracao != null && fachada != fachadaDemonstracao && visao.perguntarSeUsaDemonstracao()) {
+            fachada = fachadaDemonstracao;
+            iniciar();
+        } else {
+            visao.encerrar();
         }
-        sessaoAtual = fachada.iniciarSessaoVotacao();
-        sessaoAtual.adicionarOuvinte(visao);
-        visao.aoAtualizarSessao(sessaoAtual);
     }
 
-    // ---- Consulta de estado ----
-
-    /**
-     * Informa se há votos de um eleitor que ainda não foram gravados no banco.
-     * A tela usa esta consulta para avisar antes de fechar a urna.
-     *
-     * @return {@code true} enquanto a gravação da última sessão não terminou com sucesso
-     */
-    public boolean possuiVotosNaoGravados() {
-        return gravacaoPendente;
+    private void tratarFalhaDeGravacao(Throwable causa) {
+        gravando = false;
+        if (visao.perguntarSeTentaNovamente("Os votos ainda não foram gravados.\n" + causa.getMessage())) {
+            gravarVotos();
+        } else {
+            visao.exibirErro("Os votos continuam guardados na urna. Aperte CONFIRMA para tentar gravar de novo.");
+        }
     }
 
-    SessaoVotacao getSessaoAtual() {
-        return sessaoAtual;
+    private static void executarEmSegundoPlano(Runnable tarefa, Runnable aoConcluir, Consumer<Throwable> aoFalhar) {
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                tarefa.run();
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    aoConcluir.run();
+                } catch (ExecutionException erro) {
+                    aoFalhar.accept(erro.getCause());
+                } catch (InterruptedException erro) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }.execute();
     }
 }

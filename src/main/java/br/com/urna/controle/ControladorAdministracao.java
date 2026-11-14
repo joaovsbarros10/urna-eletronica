@@ -1,29 +1,23 @@
 /*
- * Urna Eletrônica - projeto acadêmico de simulação de votação.
+ * Urna Eletrônica
  * Arquivo: ControladorAdministracao.java
  * Autor: João
- * Criado em: 2026-11-07
  */
 
 package br.com.urna.controle;
 
+import br.com.urna.modelo.ApuracaoCargo;
+import br.com.urna.modelo.Candidato;
 import br.com.urna.modelo.Cargo;
 import br.com.urna.modelo.Partido;
-import br.com.urna.modelo.candidato.Candidato;
-import br.com.urna.modelo.candidato.FichaCandidato;
-import br.com.urna.modelo.voto.ApuracaoCargo;
 import br.com.urna.negocio.FachadaUrna;
 import java.util.List;
 
 /**
- * Controlador do módulo administrativo: repassa à {@link FachadaUrna} o
- * cadastro de partidos e candidatos e a apuração.
- * <p>
- * Os métodos que acessam o banco podem demorar; os painéis os chamam fora da
- * thread de eventos (RNF06). Erros chegam como {@link br.com.urna.excecao.UrnaException}.
+ * Controlador do módulo administrativo: repassa à fachada o cadastro de
+ * partidos e candidatos e a apuração.
  *
  * @author João
- * @since 1.0
  */
 public class ControladorAdministracao {
 
@@ -33,42 +27,28 @@ public class ControladorAdministracao {
      * Cria o controlador.
      *
      * @param fachada porta de entrada da camada de negócio
-     * @throws IllegalArgumentException se a fachada for {@code null}
      */
     public ControladorAdministracao(FachadaUrna fachada) {
-        if (fachada == null) {
-            throw new IllegalArgumentException("O controlador precisa da fachada.");
-        }
         this.fachada = fachada;
     }
 
-    // ---- Dados atualizados ----
-
-    /**
-     * Relê partidos e candidatos do banco, para os painéis mostrarem dados atuais.
-     *
-     * @throws br.com.urna.excecao.PersistenciaException se o banco não responder
-     */
-    public void carregarDadosEleitorais() {
-        fachada.carregarDadosEleitorais();
+    /** Relê partidos e candidatos do banco. */
+    public void carregarDados() {
+        fachada.carregarDados();
     }
 
-    // ---- Partidos ----
-
-    /**
-     * Lista os partidos já carregados, pelo número.
-     *
-     * @return lista imutável de partidos
-     */
     public List<Partido> listarPartidos() {
         return fachada.listarPartidos();
     }
 
+    public List<Candidato> listarCandidatos() {
+        return fachada.listarCandidatos();
+    }
+
     /**
-     * Inclui ou altera um partido (RN03).
+     * Inclui ou altera um partido.
      *
      * @param partido partido a gravar
-     * @throws br.com.urna.excecao.UrnaException se violar uma regra ou a gravação falhar
      */
     public void salvarPartido(Partido partido) {
         fachada.salvarPartido(partido);
@@ -78,53 +58,36 @@ public class ControladorAdministracao {
      * Exclui um partido sem candidatos.
      *
      * @param partido partido a excluir
-     * @throws br.com.urna.excecao.UrnaException se o partido tiver candidatos ou a exclusão falhar
      */
     public void excluirPartido(Partido partido) {
         fachada.excluirPartido(partido);
     }
 
-    // ---- Candidatos ----
-
     /**
-     * Lista os candidatos já carregados.
+     * Inclui ou altera um candidato.
      *
-     * @return lista imutável de candidatos
+     * @param candidato candidato a gravar
      */
-    public List<Candidato> listarCandidatos() {
-        return fachada.listarCandidatos();
-    }
-
-    /**
-     * Inclui ou altera um candidato (RN01 a RN07).
-     *
-     * @param ficha dados do candidato
-     * @throws br.com.urna.excecao.UrnaException se violar uma regra ou a gravação falhar
-     */
-    public void salvarCandidato(FichaCandidato ficha) {
-        fachada.salvarCandidato(ficha);
+    public void salvarCandidato(Candidato candidato) {
+        fachada.salvarCandidato(candidato);
     }
 
     /**
      * Exclui um candidato.
      *
      * @param candidato candidato a excluir
-     * @throws br.com.urna.excecao.UrnaException se a exclusão falhar
      */
     public void excluirCandidato(Candidato candidato) {
         fachada.excluirCandidato(candidato);
     }
 
-    // ---- Apuração ----
-
     /**
-     * Apura os votos de um cargo (RF12).
+     * Apura os votos de um cargo.
      *
      * @param cargo cargo apurado
-     * @return boletim do cargo
-     * @throws br.com.urna.excecao.UrnaException se a leitura dos votos falhar
+     * @return resultado do cargo
      */
-    public ApuracaoCargo apurarVotos(Cargo cargo) {
-        return fachada.apurarVotos(cargo);
+    public ApuracaoCargo apurar(Cargo cargo) {
+        return fachada.apurar(cargo);
     }
 }

@@ -1,13 +1,11 @@
 /*
- * Urna Eletrônica - projeto acadêmico de simulação de votação.
+ * Urna Eletrônica
  * Arquivo: BotaoTecla.java
  * Autor: João
- * Criado em: 2026-11-07
  */
 
 package br.com.urna.visao;
 
-import br.com.urna.controle.ControladorVotacao;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
@@ -15,48 +13,29 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 
 /**
- * Tecla da urna. Dá a aparência comum às 13 teclas e define o contrato
- * {@link #acionar(ControladorVotacao)}: cada tecla sabe o que pedir ao
- * controlador, então o teclado registra o mesmo tratador em todas e não tem
- * {@code if} por tecla (polimorfismo na visão).
+ * Tecla da urna, com a aparência comum a todas: fonte grande, cor de fundo e sem
+ * foco de teclado, para o teclado físico continuar funcionando.
  *
  * @author João
- * @since 1.0
  */
-public abstract class BotaoTecla extends JButton {
-
-    private static final int TAMANHOFONTEDIGITO = 28;
-
-    private static final int TAMANHOFONTEACAO = 13;
+public final class BotaoTecla extends JButton {
 
     /**
-     * Cria a tecla com o rótulo e as cores informados.
+     * Cria a tecla.
      *
      * @param rotulo     texto da tecla
      * @param corDeFundo cor da tecla
-     * @param corDoTexto cor do rótulo
+     * @param acao       o que acontece ao apertar
      */
-    protected BotaoTecla(String rotulo, Color corDeFundo, Color corDoTexto) {
+    public BotaoTecla(String rotulo, Color corDeFundo, Runnable acao) {
         super(rotulo);
-        int tamanhoDaFonte = rotulo.length() == 1 ? TAMANHOFONTEDIGITO : TAMANHOFONTEACAO;
-        setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanhoDaFonte));
+        boolean numerica = rotulo.length() == 1;
+        setFont(new Font(Font.SANS_SERIF, Font.BOLD, numerica ? 28 : 13));
         setBackground(corDeFundo);
-        setForeground(corDoTexto);
-        setOpaque(true);
+        setForeground(numerica ? Color.WHITE : Color.BLACK);
         setFocusable(false);
-        setFocusPainted(false);
         setMargin(new Insets(0, 0, 0, 0));
-        setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(corDeFundo.darker(), 2),
-                BorderFactory.createEmptyBorder(8, 2, 8, 2)));
+        setBorder(BorderFactory.createLineBorder(corDeFundo.darker(), 2));
+        addActionListener(evento -> acao.run());
     }
-
-    // ---- Ação da tecla ----
-
-    /**
-     * Pede ao controlador a ação desta tecla.
-     *
-     * @param controlador controlador da votação
-     */
-    public abstract void acionar(ControladorVotacao controlador);
 }

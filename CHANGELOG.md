@@ -1,23 +1,23 @@
 # Changelog
 
-Todas as mudanças relevantes do projeto. O formato segue
-[Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
+## [2.0.0] - 2026-11-14
+
+### Alterado
+- Estrutura simplificada para facilitar a apresentação: de 75 para 33 classes e de cerca de
+  6.800 para 3.000 linhas, com as mesmas funcionalidades (decisão 0007).
+- A sessão de votação passou a ser uma classe só, com um `enum` interno de situação, no lugar
+  das classes do padrão State.
+- Os serviços de negócio foram reunidos na `FachadaUrna`, e a persistência numa interface
+  `RepositorioUrna` com implementações Supabase e memória.
+- Janelas com os títulos "Urna" e "Urna Eletrônica - Administração".
+
+### Corrigido
+- O som da tecla não fica mais apitando sem parar quando o eleitor não confirma.
 
 ## [1.0.0] - 2026-11-08
 
 ### Adicionado
-- Urna de votação em Swing para os cinco cargos (Deputado Federal, Deputado Estadual,
-  Senador, Governador e Presidente), com BRANCO, CORRIGE e CONFIRMA (RF01 a RF09).
-- Sons de tecla, confirmação e fim gerados por código com `javax.sound.sampled` (RF10).
-- Módulo administrativo com cadastro de partidos e candidatos, foto obrigatória e apuração
-  por cargo (RF11 e RF12).
-- Persistência no Supabase (PostgreSQL) via JDBC, com gravação atômica dos cinco votos (RN11)
-  e duas roles de banco: `urna_votacao` (só insere votos) e `urna_administracao`.
-- Repositórios em memória e modo `demonstracao`, que abre urna e administração juntas sem internet.
-- Nova tentativa de gravação sem perder votos quando a rede falha (RNF09).
-- Scripts `banco/01-esquema.sql`, `02-seguranca.sql` e `03-dados-ficticios.sql`.
-- 95 testes JUnit 5, teste de integração opcional com o Supabase e meta de 80% de
-  cobertura de linhas em `modelo` e `negocio` conferida pelo JaCoCo.
-- Diagramas UML em Mermaid (`docs/uml/`), registros de decisão (`docs/decisoes/`),
-  rastreabilidade do checklist e roteiro de testes manuais.
-- JAR executável único (`target/urna.jar`) e Maven Wrapper (`mvnw`, `mvnw.cmd`).
+- Urna em Swing para os cinco cargos, com BRANCO, CORRIGE, CONFIRMA e sons.
+- Módulo administrativo com cadastro de partidos e candidatos (com foto) e apuração.
+- Gravação dos votos no Supabase via JDBC, numa transação, com duas roles de banco.
+- Modo demonstração em memória, testes JUnit 5, diagramas UML e documentação técnica.

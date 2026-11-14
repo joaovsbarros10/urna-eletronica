@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Urna Eletrônica - projeto acadêmico de simulação de votação.
-  Build Maven: compila para Java 17 (RNF11), roda os testes JUnit 5,
-  mede cobertura com JaCoCo e gera um JAR executável com o driver do PostgreSQL.
--->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -11,7 +6,7 @@
 
     <groupId>br.com.urna</groupId>
     <artifactId>urna</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <packaging>jar</packaging>
 
     <name>Urna Eletrônica</name>
@@ -19,26 +14,20 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.release>17</maven.compiler.release>
         <classe.principal>br.com.urna.Aplicacao</classe.principal>
-
-        <versao.postgresql>42.7.14</versao.postgresql>
-        <versao.junit>5.14.4</versao.junit>
-        <versao.jacoco>0.8.16</versao.jacoco>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${versao.postgresql}</version>
+            <version>42.7.14</version>
         </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${versao.junit}</version>
+            <version>5.14.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -54,17 +43,9 @@
                     <compilerArgs>
                         <arg>-Xlint:all,-serial,-processing</arg>
                     </compilerArgs>
-                    <showWarnings>true</showWarnings>
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.5.0</version>
-            </plugin>
-
-            <!-- Testes de unidade: sem tela, sem som e sem rede (seção 13). -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -74,47 +55,22 @@
                 </configuration>
             </plugin>
 
-            <!-- Teste de integração com o Supabase: só roda quando as variáveis de ambiente existem. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.6.1</version>
-                <configuration>
-                    <argLine>@{argLine} -Djava.awt.headless=true -Dfile.encoding=UTF-8</argLine>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Cobertura: meta de 80% de linhas nos pacotes modelo e negocio (seção 13.1). -->
+            <!-- Cobertura mínima de 80% das linhas no modelo e no negócio. -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${versao.jacoco}</version>
+                <version>0.8.16</version>
                 <executions>
                     <execution>
-                        <id>preparar-agente</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>gerar-relatorio</id>
+                        <id>relatorio</id>
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>conferir-cobertura</id>
-                        <phase>test</phase>
-                        <goals>
                             <goal>check</goal>
                         </goals>
                         <configuration>
@@ -122,7 +78,7 @@
                                 <rule>
                                     <element>PACKAGE</element>
                                     <includes>
-                                        <include>br.com.urna.modelo*</include>
+                                        <include>br.com.urna.modelo</include>
                                         <include>br.com.urna.negocio</include>
                                     </includes>
                                     <limits>
@@ -139,20 +95,7 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.5.1</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>${classe.principal}</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
-            <!-- JAR executável único (RNF11): inclui o driver JDBC do PostgreSQL. -->
+            <!-- Gera o urna.jar executável, já com o driver do PostgreSQL. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -189,7 +132,6 @@
                 </executions>
             </plugin>
 
-            <!-- Javadoc (seção 12.1): aviso vira erro. Rode com: mvn javadoc:javadoc -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -198,12 +140,9 @@
                     <show>public</show>
                     <failOnWarnings>true</failOnWarnings>
                     <doclint>all,-missing</doclint>
-                    <charset>UTF-8</charset>
-                    <docencoding>UTF-8</docencoding>
                     <encoding>UTF-8</encoding>
-                    <locale>pt_BR</locale>
-                    <doctitle>Urna Eletrônica 1.0 - documentação da API</doctitle>
-                    <windowtitle>Urna Eletrônica</windowtitle>
+                    <docencoding>UTF-8</docencoding>
+                    <charset>UTF-8</charset>
                 </configuration>
             </plugin>
         </plugins>
