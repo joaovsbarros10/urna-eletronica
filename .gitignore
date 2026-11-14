@@ -1,0 +1,27 @@
+# Saída do Maven
+target/
+
+# Credenciais locais (RNF07): nunca versionar
+urna.propriedades
+.env
+.env.*
+*.local.sql
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+nbproject/
+nbactions.xml
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# JAR copiado para a raiz para abrir com os atalhos (gerado pelo build)
+/urna.jar

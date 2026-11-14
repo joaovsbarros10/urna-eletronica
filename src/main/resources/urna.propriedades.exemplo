@@ -1,0 +1,19 @@
+# Urna Eletrônica - modelo do arquivo de configuração local (RNF07).
+#
+# Copie este arquivo para "urna.propriedades" na pasta de onde a urna é aberta
+# (ou na sua pasta de usuário) e preencha com os dados do botão Connect do
+# Supabase, opção "Session pooler" (porta 5432). O arquivo urna.propriedades
+# está no .gitignore: nunca o versione.
+#
+# As variáveis de ambiente de mesmo nome têm prioridade sobre este arquivo.
+
+# Urna de votação (role urna_votacao: lê o cadastro e só insere votos)
+URNA_BANCO_ENDERECO=jdbc:postgresql://<host-do-pooler>:5432/postgres?sslmode=require
+URNA_BANCO_USUARIO=urna_votacao.<referencia-do-projeto>
+URNA_BANCO_SENHA=<senha-da-role>
+
+# Módulo administrativo, aberto com o argumento "administracao"
+# (role urna_administracao: cadastro completo e leitura dos votos)
+URNA_ADMIN_BANCO_ENDERECO=jdbc:postgresql://<host-do-pooler>:5432/postgres?sslmode=require
+URNA_ADMIN_BANCO_USUARIO=urna_administracao.<referencia-do-projeto>
+URNA_ADMIN_BANCO_SENHA=<senha-da-role>

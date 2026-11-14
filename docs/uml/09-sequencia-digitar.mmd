@@ -1,0 +1,36 @@
+%% Digitar um dígito (seção 5.5.1). Exemplo: Deputado Federal, 4 dígitos.
+sequenceDiagram
+    autonumber
+    actor Eleitor
+    participant Botao as BotaoNumerico
+    participant Controlador as ControladorVotacao
+    participant Som as ReprodutorSom
+    participant Sessao as SessaoVotacao
+    participant Estado as EstadoDigitando
+    participant Catalogo as CatalogoEleitoral
+    participant Janela as JanelaUrna
+
+    Eleitor->>Botao: clica na tecla 3
+    Botao->>Controlador: acionar → aoPressionarDigito('3')
+    Controlador-)Som: reproduzir(TECLA)
+    Controlador->>Sessao: digitar('3')
+    Sessao->>Estado: digitar(sessao, '3')
+    Estado->>Sessao: acrescentarDigito('3')
+    alt ainda faltam dígitos
+        Estado-->>Sessao: permanece em EstadoDigitando
+    else completou o número do cargo
+        Estado->>Catalogo: buscarCandidato(cargo, numero)
+        Catalogo-->>Estado: Optional de Candidato
+        alt candidato encontrado
+            Estado->>Sessao: definirCandidatoEncontrado(candidato)
+            Estado->>Sessao: definirEstado(EstadoCandidatoEncontrado)
+        else partido existe e candidato não
+            Estado->>Catalogo: existePartidoComNumero(prefixo)
+            Estado->>Sessao: definirEstado(EstadoNumeroInexistente com CANDIDATO INEXISTENTE)
+        else partido não existe
+            Estado->>Sessao: definirEstado(EstadoNumeroInexistente com NÚMERO ERRADO)
+        end
+    end
+    Sessao->>Janela: aoAtualizarSessao(sessao)
+    Janela->>Sessao: lê cargo, dígitos, candidato e aviso
+    Janela->>Janela: PainelDisplay.atualizar(sessao)

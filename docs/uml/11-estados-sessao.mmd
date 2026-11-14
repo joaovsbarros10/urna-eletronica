@@ -1,0 +1,18 @@
+%% Estados da sessão de votação, um cargo por vez (seção 5.6.1).
+stateDiagram-v2
+    [*] --> Digitando : iniciar sessão no 1º cargo
+    Digitando --> Digitando : digitar com dígitos faltando
+    Digitando --> Digitando : corrigir apaga os dígitos
+    Digitando --> CandidatoEncontrado : digitar o último dígito e o candidato existe
+    Digitando --> NumeroInexistente : digitar o último dígito e não há candidato
+    Digitando --> VotoEmBranco : votarEmBranco sem dígitos digitados
+    CandidatoEncontrado --> Digitando : corrigir
+    NumeroInexistente --> Digitando : corrigir
+    VotoEmBranco --> Digitando : corrigir
+    CandidatoEncontrado --> Digitando : confirmar e há próximo cargo
+    NumeroInexistente --> Digitando : confirmar e há próximo cargo
+    VotoEmBranco --> Digitando : confirmar e há próximo cargo
+    CandidatoEncontrado --> Encerrado : confirmar o último cargo
+    NumeroInexistente --> Encerrado : confirmar o último cargo
+    VotoEmBranco --> Encerrado : confirmar o último cargo
+    Encerrado --> [*]

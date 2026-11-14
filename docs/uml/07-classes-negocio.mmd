@@ -1,0 +1,99 @@
+%% Camada de negócio (seção 5.4.3), conforme o código. "~" = acesso de pacote.
+classDiagram
+    direction TB
+
+    class CatalogoCandidatos {
+        <<interface>>
+        +buscarCandidato(Cargo cargo, String numero) Optional~Candidato~
+        +existePartidoComNumero(int numero) boolean
+    }
+
+    class FachadaUrna {
+        -CatalogoEleitoral catalogoEleitoral
+        -ServicoVotacao servicoVotacao
+        -ServicoCadastro servicoCadastro
+        -ServicoApuracao servicoApuracao
+        +FachadaUrna(RepositorioPartido, RepositorioCandidato, RepositorioVoto)
+        +carregarDadosEleitorais() void
+        +iniciarSessaoVotacao() SessaoVotacao
+        +registrarVotos(List~Voto~ votos) void
+        +listarPartidos() List~Partido~
+        +salvarPartido(Partido partido) void
+        +excluirPartido(Partido partido) void
+        +listarCandidatos() List~Candidato~
+        +salvarCandidato(FichaCandidato ficha) void
+        +excluirCandidato(Candidato candidato) void
+        +apurarVotos(Cargo cargo) ApuracaoCargo
+    }
+
+    class ServicoVotacao {
+        -RepositorioVoto repositorioVoto
+        ~registrarVotos(List~Voto~ votos) void
+    }
+
+    class ServicoCadastro {
+        ~int TAMANHOMAXIMOFOTO$
+        -RepositorioPartido repositorioPartido
+        -RepositorioCandidato repositorioCandidato
+        -CatalogoEleitoral catalogoEleitoral
+        ~recarregarCatalogo() void
+        ~salvarPartido(Partido partido) void
+        ~excluirPartido(Partido partido) void
+        ~salvarCandidato(FichaCandidato ficha) void
+        ~excluirCandidato(Candidato candidato) void
+        ~validarFoto(byte[] foto)$ void
+    }
+
+    class ServicoApuracao {
+        -RepositorioVoto repositorioVoto
+        -CatalogoEleitoral catalogoEleitoral
+        ~apurar(Cargo cargo) ApuracaoCargo
+    }
+
+    class CatalogoEleitoral {
+        -Map~String,Candidato~ candidatosPorChave
+        -Set~Integer~ numerosDePartido
+        -List~Partido~ partidos
+        -List~Candidato~ candidatos
+        ~carregar(List~Partido~ partidos, List~Candidato~ candidatos) void
+        +buscarCandidato(Cargo cargo, String numero) Optional~Candidato~
+        +existePartidoComNumero(int numero) boolean
+        ~listarPartidos() List~Partido~
+        ~listarCandidatos() List~Candidato~
+        ~listarCandidatosDoCargo(Cargo cargo) List~Candidato~
+        ~possuiCandidatos(Partido partido) boolean
+    }
+
+    class SessaoVotacao {
+        <<modelo>>
+    }
+    class RepositorioPartido {
+        <<persistencia>>
+    }
+    class RepositorioCandidato {
+        <<persistencia>>
+    }
+    class RepositorioVoto {
+        <<persistencia>>
+    }
+    class FabricaCandidato {
+        <<modelo>>
+    }
+
+    CatalogoCandidatos <|.. CatalogoEleitoral
+    FachadaUrna *-- ServicoVotacao
+    FachadaUrna *-- ServicoCadastro
+    FachadaUrna *-- ServicoApuracao
+    FachadaUrna *-- CatalogoEleitoral
+    FachadaUrna ..> SessaoVotacao : cria
+    FachadaUrna ..> RepositorioPartido : recebe
+    FachadaUrna ..> RepositorioCandidato : recebe
+    FachadaUrna ..> RepositorioVoto : recebe
+    ServicoVotacao --> RepositorioVoto
+    ServicoCadastro --> RepositorioPartido
+    ServicoCadastro --> RepositorioCandidato
+    ServicoCadastro --> CatalogoEleitoral
+    ServicoCadastro ..> FabricaCandidato : usa
+    ServicoApuracao --> RepositorioVoto
+    ServicoApuracao --> CatalogoEleitoral
+    SessaoVotacao --> CatalogoCandidatos

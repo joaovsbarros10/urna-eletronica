@@ -1,0 +1,75 @@
+%% Hierarquia de Voto e apuração (seção 5.3.2), conforme o código.
+classDiagram
+    direction TB
+
+    class TipoVoto {
+        <<enumeration>>
+        CANDIDATO
+        BRANCO
+        NULO
+    }
+
+    class Voto {
+        <<abstract>>
+        -Cargo cargo
+        #Voto(Cargo cargo)
+        +getCargo() Cargo
+        +contabilizarEm(ApuracaoCargo apuracao)* void
+        +obterDescricao()* String
+        +getTipo()* TipoVoto
+        +obterIdentificadorDoCandidato()* OptionalLong
+        #exigirMesmoCargo(ApuracaoCargo apuracao) void
+    }
+
+    class VotoCandidato {
+        -Candidato candidato
+        +VotoCandidato(Cargo cargo, Candidato candidato)
+        +getCandidato() Candidato
+        +contabilizarEm(ApuracaoCargo apuracao) void
+        +obterDescricao() String
+        +getTipo() TipoVoto
+        +obterIdentificadorDoCandidato() OptionalLong
+    }
+
+    class VotoBranco {
+        +VotoBranco(Cargo cargo)
+        +contabilizarEm(ApuracaoCargo apuracao) void
+        +obterDescricao() String
+        +getTipo() TipoVoto
+        +obterIdentificadorDoCandidato() OptionalLong
+    }
+
+    class VotoNulo {
+        +VotoNulo(Cargo cargo)
+        +contabilizarEm(ApuracaoCargo apuracao) void
+        +obterDescricao() String
+        +getTipo() TipoVoto
+        +obterIdentificadorDoCandidato() OptionalLong
+    }
+
+    class ApuracaoCargo {
+        -Cargo cargo
+        -Map~Candidato,Integer~ votosPorCandidato
+        -int votosBrancos
+        -int votosNulos
+        +ApuracaoCargo(Cargo cargo)
+        +incluirCandidato(Candidato candidato) void
+        +registrarVotoParaCandidato(Candidato candidato) void
+        +registrarVotoBranco() void
+        +registrarVotoNulo() void
+        +getVotosDoCandidato(Candidato candidato) int
+        +getVotosBrancos() int
+        +getVotosNulos() int
+        +getVotosValidos() int
+        +getTotalDeVotos() int
+        +listarCandidatosEmOrdemDeVotos() List~Candidato~
+    }
+
+    Voto <|-- VotoCandidato
+    Voto <|-- VotoBranco
+    Voto <|-- VotoNulo
+    Voto --> Cargo
+    Voto --> TipoVoto
+    VotoCandidato --> Candidato
+    Voto ..> ApuracaoCargo : contabilizarEm
+    ApuracaoCargo --> Cargo

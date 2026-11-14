@@ -1,0 +1,163 @@
+%% Visão e controle da votação (seção 5.4.1), conforme o código.
+classDiagram
+    direction TB
+
+    class JFrame {
+        <<Swing>>
+    }
+    class JPanel {
+        <<Swing>>
+    }
+    class JLabel {
+        <<Swing>>
+    }
+    class JButton {
+        <<Swing>>
+    }
+    class SessaoVotacao {
+        <<modelo>>
+    }
+    class FachadaUrna {
+        <<negocio>>
+    }
+    class ReprodutorSom {
+        <<som>>
+    }
+
+    class OuvinteSessaoVotacao {
+        <<interface>>
+        +aoAtualizarSessao(SessaoVotacao sessao) void
+    }
+
+    class VisaoVotacao {
+        <<interface>>
+        +exibirCarregando() void
+        +exibirErro(String mensagem) void
+        +perguntarSeTentaNovamente(String mensagem) boolean
+        +perguntarSeUsaDemonstracao() boolean
+        +encerrar() void
+    }
+
+    class ControladorVotacao {
+        +int ESPERAPADRAOEMMILISSEGUNDOS$
+        -ReprodutorSom reprodutorSom
+        -FachadaUrna fachada
+        -FachadaUrna fachadaDemonstracao
+        -VisaoVotacao visao
+        -SessaoVotacao sessaoAtual
+        -int esperaAntesDeReiniciar
+        -boolean gravacaoPendente
+        -boolean gravando
+        +ControladorVotacao(FachadaUrna fachada, ReprodutorSom reprodutorSom)
+        +definirVisao(VisaoVotacao visao) void
+        +definirFachadaDeDemonstracao(FachadaUrna fachada) void
+        +definirEsperaAntesDeReiniciar(int milissegundos) void
+        +iniciar() void
+        +aoPressionarDigito(char digito) void
+        +aoPressionarBranco() void
+        +aoPressionarCorrige() void
+        +aoPressionarConfirma() void
+        +possuiVotosNaoGravados() boolean
+        -carregarDados() void
+        -gravarVotos() void
+        -iniciarNovaSessao() void
+    }
+
+    class JanelaUrna {
+        -PainelDisplay painelDisplay
+        -PainelTeclado painelTeclado
+        -ControladorVotacao controlador
+        +JanelaUrna(ControladorVotacao controlador)
+        +aoAtualizarSessao(SessaoVotacao sessao) void
+        +exibirCarregando() void
+        +exibirErro(String mensagem) void
+        +perguntarSeTentaNovamente(String mensagem) boolean
+        +perguntarSeUsaDemonstracao() boolean
+        +encerrar() void
+    }
+
+    class PainelDisplay {
+        -JLabel rotuloCargo
+        -List~CampoDigito~ camposDigito
+        -JLabel rotuloNome
+        -JLabel rotuloPartido
+        -JLabel rotuloFoto
+        -JPanel painelLinhasAdicionais
+        -JLabel rotuloAviso
+        -JLabel rotuloAvisoDestaque
+        -JLabel rotuloInstrucao
+        +atualizar(SessaoVotacao sessao) void
+        +exibirCarregando() void
+        -reconstruirCamposDigito(int quantidade) void
+        -exibirFoto(byte[] foto) void
+    }
+
+    class CampoDigito {
+        +exibirDigito(char digito) void
+        +limpar() void
+        +destacar(boolean destaque) void
+    }
+
+    class PainelTeclado {
+        +PainelTeclado(ControladorVotacao controlador)
+        -montarBotoes(ControladorVotacao controlador) void
+        -ligarTecladoFisico(ControladorVotacao controlador) void
+    }
+
+    class BotaoTecla {
+        <<abstract>>
+        #BotaoTecla(String rotulo, Color corDeFundo, Color corDoTexto)
+        +acionar(ControladorVotacao controlador)* void
+    }
+
+    class BotaoNumerico {
+        -char digito
+        +BotaoNumerico(char digito)
+        +acionar(ControladorVotacao controlador) void
+    }
+    class BotaoBranco {
+        +acionar(ControladorVotacao controlador) void
+    }
+    class BotaoCorrige {
+        +acionar(ControladorVotacao controlador) void
+    }
+    class BotaoConfirma {
+        +acionar(ControladorVotacao controlador) void
+    }
+
+    class TemaVisual {
+        <<interface>>
+        +Color FUNDODISPLAY
+        +Color TEXTODISPLAY
+        +Color FUNDOCORPO
+        +Color FUNDOTECLADO
+        +Color TECLANUMERICA
+        +Color TECLABRANCO
+        +Color TECLACORRIGE
+        +Color TECLACONFIRMA
+    }
+
+    JFrame <|-- JanelaUrna
+    JPanel <|-- PainelDisplay
+    JPanel <|-- PainelTeclado
+    JLabel <|-- CampoDigito
+    JButton <|-- BotaoTecla
+    BotaoTecla <|-- BotaoNumerico
+    BotaoTecla <|-- BotaoBranco
+    BotaoTecla <|-- BotaoCorrige
+    BotaoTecla <|-- BotaoConfirma
+    OuvinteSessaoVotacao <|-- VisaoVotacao
+    VisaoVotacao <|.. JanelaUrna
+    JanelaUrna *-- PainelDisplay
+    JanelaUrna *-- PainelTeclado
+    PainelDisplay *-- "2..5" CampoDigito
+    PainelTeclado *-- "13" BotaoTecla
+    JanelaUrna --> ControladorVotacao
+    BotaoTecla ..> ControladorVotacao : aciona
+    ControladorVotacao --> VisaoVotacao
+    ControladorVotacao --> SessaoVotacao
+    ControladorVotacao --> FachadaUrna
+    ControladorVotacao --> ReprodutorSom
+    SessaoVotacao "1" o-- "*" OuvinteSessaoVotacao
+    PainelDisplay ..> TemaVisual
+    PainelTeclado ..> TemaVisual

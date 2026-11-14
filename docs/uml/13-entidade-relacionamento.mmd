@@ -1,0 +1,30 @@
+%% Modelo de dados (seção 5.7). Não há tabela de eleitor e voto não guarda horário (RN12, RNF08).
+erDiagram
+    partido ||--o{ candidato : tem
+    candidato |o--o{ voto : recebe
+
+    partido {
+        bigint identificador PK
+        smallint numero UK "10 a 99 (RN03)"
+        varchar sigla UK
+        varchar nome
+    }
+
+    candidato {
+        bigint identificador PK
+        text cargo UK "com numero (RN05)"
+        varchar numero UK "prefixo do partido (RN04)"
+        varchar nome
+        bigint partido_identificador FK
+        bytea foto "1 byte a 200 KB (RN06)"
+        varchar nome_vice "Presidente e Governador (RN07)"
+        varchar nome_primeiro_suplente "Senador (RN07)"
+        varchar nome_segundo_suplente "Senador (RN07)"
+    }
+
+    voto {
+        uuid identificador PK "aleatório"
+        text cargo
+        text tipo "CANDIDATO, BRANCO ou NULO"
+        bigint candidato_identificador FK "nulo em BRANCO e NULO"
+    }
