@@ -13,7 +13,7 @@ Na página de [Releases](../../releases/latest), baixe um dos arquivos:
 | Arquivo | O que faz |
 |---|---|
 | `Urna.cmd` | Abre a urna de votação |
-| `Urna Administracao.cmd` | Abre o painel administrativo (cadastro de partidos e candidatos e apuração) |
+| `Urna-Administracao.cmd` | Abre o painel administrativo (cadastro de partidos e candidatos e apuração) |
 | `Urna-Windows.zip` | O programa completo: descompacte e abra `Urna.exe` ou `Administracao.exe` |
 
 Os dois `.cmd` funcionam sozinhos, sem a pasta do projeto e sem Java instalado: na primeira
