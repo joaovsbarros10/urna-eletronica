@@ -41,8 +41,8 @@ public class RepositorioUrnaMemoria implements RepositorioUrna {
     private long ultimoIdentificador;
 
     /**
-     * Cria o repositório com os mesmos partidos e candidatos fictícios do script
-     * {@code banco/03-dados-ficticios.sql}. As fotos são desenhadas na hora.
+     * Cria o repositório com dois partidos e dez candidatos fictícios, um par
+     * para cada cargo. As fotos são desenhadas na hora.
      *
      * @return repositório preenchido
      */

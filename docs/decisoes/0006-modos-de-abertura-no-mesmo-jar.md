@@ -12,8 +12,8 @@ Um único JAR, com o modo escolhido pelo argumento:
 
 | Argumento | Abre | Dados |
 |---|---|---|
-| (nenhum) | urna de votação | Supabase, variáveis `URNA_BANCO_*` |
-| `administracao` | módulo administrativo | Supabase, variáveis `URNA_ADMIN_BANCO_*` |
+| (nenhum) | urna de votação | Firebase, login opcional `URNA_BANCO_*` |
+| `administracao` | módulo administrativo | Firebase, login opcional `URNA_ADMIN_BANCO_*` |
 | `demonstracao` | urna e administração juntas | memória, dados fictícios |
 
 Sem configuração do banco, a urna e a administração avisam e abrem com os dados de

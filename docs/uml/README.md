@@ -11,4 +11,4 @@ Fontes Mermaid dos diagramas. Cole o conteúdo de cada arquivo em
 | `04-classes-negocio-persistencia.mmd` | Fachada, repositórios, som e exceção |
 | `05-classes-visao-controle.mmd` | Janelas, painéis, teclas e controladores |
 | `06-sequencia-votar.mmd` | Digitar, confirmar e gravar os votos |
-| `07-entidade-relacionamento.mmd` | Tabelas do banco |
+| `07-entidade-relacionamento.mmd` | Coleções do Firestore |

@@ -10,9 +10,9 @@ import br.com.urna.controle.ControladorAdministracao;
 import br.com.urna.controle.ControladorVotacao;
 import br.com.urna.excecao.UrnaException;
 import br.com.urna.negocio.FachadaUrna;
-import br.com.urna.persistencia.ConexaoBancoDados;
+import br.com.urna.persistencia.ConexaoFirebase;
+import br.com.urna.persistencia.RepositorioUrnaFirebase;
 import br.com.urna.persistencia.RepositorioUrnaMemoria;
-import br.com.urna.persistencia.RepositorioUrnaSupabase;
 import br.com.urna.som.ReprodutorSom;
 import br.com.urna.visao.JanelaAdministracao;
 import br.com.urna.visao.JanelaUrna;
@@ -26,8 +26,8 @@ import javax.swing.WindowConstants;
  * Ponto de entrada. Cria o repositório, a fachada, os controladores e as janelas
  * e liga tudo. Argumentos aceitos:
  * <ul>
- *   <li>nenhum: abre a urna, usando o Supabase;</li>
- *   <li>{@code administracao}: abre o cadastro e a apuração, usando o Supabase;</li>
+ *   <li>nenhum: abre a urna, usando o Firebase;</li>
+ *   <li>{@code administracao}: abre o cadastro e a apuração, usando o Firebase;</li>
  *   <li>{@code demonstracao}: abre a urna e a administração com dados em memória.</li>
  * </ul>
  *
@@ -66,7 +66,7 @@ public final class Aplicacao {
 
     private static FachadaUrna criarFachada(String prefixoConfiguracao) {
         try {
-            return new FachadaUrna(new RepositorioUrnaSupabase(ConexaoBancoDados.carregar(prefixoConfiguracao)));
+            return new FachadaUrna(new RepositorioUrnaFirebase(ConexaoFirebase.carregar(prefixoConfiguracao)));
         } catch (UrnaException erro) {
             JOptionPane.showMessageDialog(null, erro.getMessage() + "\n\nA urna vai abrir com dados de demonstração.");
             return new FachadaUrna(RepositorioUrnaMemoria.criarComDadosDeDemonstracao());

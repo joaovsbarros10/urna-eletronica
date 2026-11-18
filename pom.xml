@@ -6,11 +6,11 @@
 
     <groupId>br.com.urna</groupId>
     <artifactId>urna</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <packaging>jar</packaging>
 
     <name>Urna Eletrônica</name>
-    <description>Simulador de urna eletrônica em Java (Swing + Supabase), sem valor oficial.</description>
+    <description>Simulador de urna eletrônica em Java (Swing + Firebase), sem valor oficial.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -20,9 +20,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.14</version>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -95,7 +95,7 @@
                 </executions>
             </plugin>
 
-            <!-- Gera o urna.jar executável, já com o driver do PostgreSQL. -->
+            <!-- Gera o urna.jar executável, já com a biblioteca Gson. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

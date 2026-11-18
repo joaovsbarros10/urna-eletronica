@@ -101,6 +101,32 @@ public class ApuracaoCargo {
     }
 
     /**
+     * Calcula a porcentagem do candidato sobre os votos válidos, como faz a
+     * Justiça Eleitoral: brancos e nulos não entram na conta.
+     *
+     * @param candidato candidato consultado
+     * @return porcentagem de 0 a 100; 0 se ainda não há votos válidos
+     */
+    public double calcularPercentualDoCandidato(Candidato candidato) {
+        return calcularPercentual(getVotosDoCandidato(candidato), getVotosValidos());
+    }
+
+    /**
+     * Calcula a porcentagem de uma quantidade de votos sobre o total do cargo;
+     * usada para válidos, brancos e nulos.
+     *
+     * @param votos quantidade de votos
+     * @return porcentagem de 0 a 100; 0 se o cargo ainda não tem votos
+     */
+    public double calcularPercentualDoTotal(int votos) {
+        return calcularPercentual(votos, getTotalDeVotos());
+    }
+
+    private static double calcularPercentual(int votos, int base) {
+        return base == 0 ? 0 : votos * 100.0 / base;
+    }
+
+    /**
      * Lista os candidatos do mais votado para o menos votado.
      *
      * @return candidatos ordenados por votos

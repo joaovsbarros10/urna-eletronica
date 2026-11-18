@@ -30,15 +30,17 @@ classDiagram
         +listarVotos(Cargo, List~Candidato~) List~Voto~
     }
 
-    class RepositorioUrnaSupabase {
-        -ConexaoBancoDados conexaoBancoDados
+    class RepositorioUrnaFirebase {
+        -ConexaoFirebase conexao
     }
     class RepositorioUrnaMemoria {
         +criarComDadosDeDemonstracao()$ RepositorioUrnaMemoria
     }
-    class ConexaoBancoDados {
-        +carregar(String prefixo)$ ConexaoBancoDados
-        +abrirConexao() Connection
+    class ConexaoFirebase {
+        +carregar(String prefixo)$ ConexaoFirebase
+        +listar(String, List~String~, String) List~JsonObject~
+        +consultar(JsonObject, String) List~JsonObject~
+        +gravar(JsonArray, String) void
     }
     class ReprodutorSom {
         +tocarTecla() void
@@ -48,8 +50,8 @@ classDiagram
     class UrnaException
 
     FachadaUrna --> RepositorioUrna
-    RepositorioUrna <|.. RepositorioUrnaSupabase
+    RepositorioUrna <|.. RepositorioUrnaFirebase
     RepositorioUrna <|.. RepositorioUrnaMemoria
-    RepositorioUrnaSupabase --> ConexaoBancoDados
+    RepositorioUrnaFirebase --> ConexaoFirebase
     FachadaUrna ..> UrnaException : lança
-    RepositorioUrnaSupabase ..> UrnaException : lança
+    ConexaoFirebase ..> UrnaException : lança

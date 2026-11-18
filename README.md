@@ -2,7 +2,7 @@
 
 Simulador de urna eletrônica **sem valor oficial**, feito para estudo. Aplicação desktop
 escrita só em Java: interface em **Swing**, arquitetura **MVC com Fachada** e votos gravados
-no **Supabase (PostgreSQL)** via **JDBC**. A votação segue a ordem Deputado Federal,
+no **Firebase (Cloud Firestore)** pela API REST. A votação segue a ordem Deputado Federal,
 Deputado Estadual, Senador, Governador e Presidente, com as teclas BRANCO, CORRIGE e
 CONFIRMA e os sons de tecla, confirmação e fim.
 
@@ -16,26 +16,31 @@ Requisito: Java 17 ou superior.
 
 | No Windows | Comando | Abre | Dados |
 |---|---|---|---|
-| `Abrir Urna.cmd` | `java -jar urna.jar` | urna de votação | Supabase (role `urna_votacao`) |
-| `Abrir Administracao.cmd` | `java -jar urna.jar administracao` | cadastro e apuração | Supabase (role `urna_administracao`) |
+| `Abrir Urna.cmd` | `java -jar urna.jar` | urna de votação | Firebase |
+| `Abrir Administracao.cmd` | `java -jar urna.jar administracao` | cadastro e apuração | Firebase |
 | — | `java -jar urna.jar demonstracao` | urna e administração juntas | memória, sem internet |
 
 Sem configuração do banco, ou se o banco não responder, a urna oferece os dados de
 demonstração. Teclado do computador: dígitos, **Enter** = CONFIRMA, **Backspace** = CORRIGE.
 
-Números para testar: Deputado Federal `3105`, Deputado Estadual `31042`, Senador `312`,
+Números para testar no modo demonstração: Deputado Federal `3105`, Deputado Estadual `31042`, Senador `312`,
 Governador `31`, Presidente `47`. Um número com partido inexistente (por exemplo `99`) dá
 NÚMERO ERRADO; com partido existente e sem candidato (por exemplo `3199`) dá CANDIDATO INEXISTENTE.
 
-## Configurar o Supabase
+## Configurar o Firebase
 
-1. Crie um projeto no [Supabase](https://supabase.com).
-2. No **SQL Editor**, rode em ordem `banco/01-esquema.sql`, `banco/02-seguranca.sql` (troque
-   antes as duas senhas `TROQUE-ESTA-SENHA`) e `banco/03-dados-ficticios.sql`.
+1. Crie um projeto no [console do Firebase](https://console.firebase.google.com) e, nele, um
+   banco **Cloud Firestore**.
+2. Em **Firestore Database > Regras**, cole o conteúdo de `banco/firestore.rules` e publique.
 3. Crie o arquivo `urna.propriedades` na pasta do projeto, a partir de
-   `src/main/resources/urna.propriedades.exemplo`, com o endereço do **Session pooler**
-   (botão *Connect*, porta 5432) e os usuários `urna_votacao.<referencia-do-projeto>` e
-   `urna_administracao.<referencia-do-projeto>`. Esse arquivo fica fora do Git.
+   `src/main/resources/urna.propriedades.exemplo`, com o **código do projeto**
+   (Configurações do projeto > Geral). Esse arquivo fica fora do Git.
+4. Cadastre partidos e candidatos pela administração.
+
+O login é opcional. Para separar a urna da administração, crie no Firebase Authentication os
+usuários `votacao@urna.test` e `administracao@urna.test`, publique
+`banco/firestore-com-login.rules` e preencha a chave da API e os dois e-mails e senhas no
+`urna.propriedades`.
 
 ## Compilar e testar
 
@@ -58,7 +63,7 @@ src/main/java/br/com/urna/
 ├── modelo/                 Cargo, Partido, Candidato (+3 subclasses), Voto (+3 subclasses),
 │                           ApuracaoCargo e SessaoVotacao
 ├── negocio/                FachadaUrna: única porta de entrada das regras
-├── persistencia/           RepositorioUrna, implementações Supabase e memória, ConexaoBancoDados
+├── persistencia/           RepositorioUrna, implementações Firebase e memória, ConexaoFirebase
 ├── controle/               ControladorVotacao, ControladorAdministracao, VisaoVotacao
 ├── visao/                  janelas, painéis e teclas Swing
 ├── som/                    ReprodutorSom
@@ -79,5 +84,7 @@ modelo não depende de ninguém.
 ## Limitações
 
 - O voto não guarda eleitor nem horário, mas os cinco votos de um eleitor entram juntos no banco.
-- Quem tiver a senha da role `urna_votacao` consegue inserir votos (não ler nem apagar).
+- Sem login, quem souber o código do projeto consegue ler os dados, cadastrar partidos e
+  candidatos e inserir votos válidos. Ninguém consegue alterar ou apagar votos.
+- O PDF do projeto pedia Supabase via JDBC (RNF08); a troca pelo Firebase está na decisão 0008.
 - Fora do escopo: identificação do eleitor, voto de legenda, segundo turno.

@@ -39,7 +39,7 @@ public class FachadaUrna {
     private List<Candidato> candidatos = List.of();
 
     /**
-     * Cria a fachada sobre o repositório (Supabase ou memória).
+     * Cria a fachada sobre o repositório (Firebase ou memória).
      *
      * @param repositorio onde os dados são guardados
      */

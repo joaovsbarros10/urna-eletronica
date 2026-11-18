@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.1.0] - 2026-11-14
+
+### Alterado
+- Banco trocado do Supabase (PostgreSQL via JDBC) pelo Firebase (Cloud Firestore via API REST),
+  com `RepositorioUrnaFirebase` e `ConexaoFirebase` no lugar das classes do Supabase (decisão 0008).
+- As regras do banco passaram dos scripts SQL para `banco/firestore.rules`.
+- O login no Firebase Authentication ficou opcional; sem ele, valem as regras sem login.
+
+### Adicionado
+- A apuração mostra a porcentagem de cada candidato sobre os votos válidos e a de válidos,
+  brancos e nulos sobre o total (`ApuracaoCargo.calcularPercentualDoCandidato` e
+  `calcularPercentualDoTotal`).
+
+### Removido
+- Driver do PostgreSQL e os scripts `banco/01` a `03`.
+
 ## [2.0.0] - 2026-11-14
 
 ### Alterado

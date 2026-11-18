@@ -19,10 +19,13 @@
 ## 1. O que é (1 min 30)
 
 Simulador de urna sem valor oficial, 100% Java: interface em **Swing**, **MVC com Fachada**,
-banco **PostgreSQL no Supabase** via **JDBC**, testes **JUnit 5**. São 33 classes. A regra
+banco **Cloud Firestore no Firebase** pela **API REST**, testes **JUnit 5**. São 33 classes. A regra
 central: **o número do candidato começa com o número do partido**.
 
 ## 2. Demonstração (3 min)
+
+Os números abaixo são os do modo demonstração (`java -jar urna.jar demonstracao`, que abre a
+urna e a administração juntas). Com o Firebase, use os candidatos cadastrados.
 
 | Cargo | Digite | Mostra |
 |---|---|---|
@@ -32,7 +35,7 @@ central: **o número do candidato começa com o número do partido**.
 | Governador | BRANCO | VOTO EM BRANCO → CONFIRMA |
 | Presidente | `31`, CORRIGE, `47` | CORRIGE limpa; Rui Albuquerque e o vice → CONFIRMA |
 
-No FIM, abra `Abrir Administracao.cmd`, aba **Apuração**, e mostre o voto contado.
+No FIM, vá à administração, aba **Apuração**, e mostre o voto contado e a porcentagem.
 
 ## 3. Arquitetura (1 min 30)
 
@@ -40,8 +43,9 @@ No FIM, abra `Abrir Administracao.cmd`, aba **Apuração**, e mostre o voto cont
   **modelo não depende de ninguém**.
 - [FachadaUrna.java:31](../src/main/java/br/com/urna/negocio/FachadaUrna.java#L31): única porta
   de entrada das regras (item 2.0 do checklist).
-- [Aplicacao.java:54](../src/main/java/br/com/urna/Aplicacao.java#L54): a mesma Fachada roda sobre
-  o Supabase ou sobre a memória; só muda o repositório.
+- [Aplicacao.java:69](../src/main/java/br/com/urna/Aplicacao.java#L69): a mesma Fachada roda sobre
+  o Firebase ou sobre a memória; só muda o repositório. Trocar o Supabase pelo Firebase
+  mexeu só no pacote `persistencia`.
 
 ## 4. Herança e polimorfismo (3 min)
 
@@ -73,18 +77,20 @@ No FIM, abra `Abrir Administracao.cmd`, aba **Apuração**, e mostre o voto cont
 
 ## 6. Banco de dados (2 min 30)
 
-- [ConexaoBancoDados.java:92](../src/main/java/br/com/urna/persistencia/ConexaoBancoDados.java#L92):
-  JDBC com `sslmode=require`; a senha vem do `urna.propriedades`, fora do Git.
-- [RepositorioUrnaSupabase.java:205](../src/main/java/br/com/urna/persistencia/RepositorioUrnaSupabase.java#L205):
-  os cinco votos numa **transação** (`commit` ou `rollback`).
+- [ConexaoFirebase.java:89](../src/main/java/br/com/urna/persistencia/ConexaoFirebase.java#L89):
+  o código do projeto vem do `urna.propriedades`, fora do Git; as requisições vão por HTTPS.
+- [RepositorioUrnaFirebase.java:143](../src/main/java/br/com/urna/persistencia/RepositorioUrnaFirebase.java#L143):
+  os cinco votos num único **commit**: entram todos ou nenhum.
+- [RepositorioUrnaFirebase.java:127](../src/main/java/br/com/urna/persistencia/RepositorioUrnaFirebase.java#L127):
+  o Firestore não tem chave estrangeira, então o repositório confere os votos antes de excluir.
 - [ControladorVotacao.java:173](../src/main/java/br/com/urna/controle/ControladorVotacao.java#L173):
   se a internet cair, os votos ficam na memória e a urna tenta de novo.
-- [banco/01-esquema.sql](../banco/01-esquema.sql): a tabela `voto` não tem eleitor nem horário (sigilo).
-- [banco/02-seguranca.sql](../banco/02-seguranca.sql): a role da urna só **insere** votos.
+- [banco/firestore.rules](../banco/firestore.rules): o banco só aceita dados válidos, o voto não
+  tem eleitor nem horário (sigilo) e nenhum voto pode ser alterado ou apagado.
 
 ## 7. Testes e fechamento (1 min 30)
 
-- 22 testes JUnit 5 sem tela e sem internet; cobertura acima de 80% no modelo e no negócio.
+- 23 testes JUnit 5 sem tela e sem internet; cobertura acima de 80% no modelo e no negócio.
 - Limitações: é simulador, sem identificação do eleitor e sem voto de legenda.
 
 ## Perguntas prováveis
@@ -93,6 +99,8 @@ No FIM, abra `Abrir Administracao.cmd`, aba **Apuração**, e mostre o voto cont
 |---|---|
 | Por que não usou Spring? | O enunciado pede desktop em Swing com MVC e Fachada; as peças são ligadas à mão na `Aplicacao`. |
 | E se a internet cair? | Os votos ficam na memória e a urna oferece nova tentativa. |
-| Como garante o sigilo? | A tabela de votos não tem eleitor, horário nem sequência; o identificador é aleatório. |
+| Como garante o sigilo? | O voto não tem eleitor, horário nem sequência; o identificador é aleatório. |
 | As teclas consultam o banco? | Não. Os candidatos são carregados uma vez na abertura. |
+| Por que Firebase, se o PDF pedia Supabase? | Decisão 0008. Como tudo passa pela interface `RepositorioUrna`, a troca mexeu só em duas classes. |
+| Por que não usou o SDK do Firebase? | A API REST mantém o jar pequeno e permite regras de segurança diferentes para a urna e a administração (versão com login). |
 | Por que `DEPUTADOFEDERAL` sem sublinhado? | O item 3.0 pede só letras e dígitos. |

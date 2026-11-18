@@ -1,0 +1,86 @@
+// =====================================================================
+// Urna Eletrônica - firestore-com-login.rules
+// Versão para quando o login estiver ligado. Exige dois usuários no
+// Firebase Authentication (e-mail e senha):
+//   votacao@urna.test        lê o cadastro e só CRIA votos (não lê, não altera, não apaga votos)
+//   administracao@urna.test  cadastro completo e leitura dos votos para a apuração
+// e URNA_BANCO_EMAIL/SENHA, URNA_ADMIN_BANCO_EMAIL/SENHA e URNA_FIREBASE_CHAVE
+// no urna.propriedades. Para usar, cole no lugar de firestore.rules.
+// =====================================================================
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function ehUrna() {
+      return request.auth != null && request.auth.token.email == 'votacao@urna.test';
+    }
+
+    function ehAdministracao() {
+      return request.auth != null && request.auth.token.email == 'administracao@urna.test';
+    }
+
+    function cargoValido(cargo) {
+      return cargo in ['PRESIDENTE', 'GOVERNADOR', 'SENADOR', 'DEPUTADOFEDERAL', 'DEPUTADOESTADUAL'];
+    }
+
+    // RN01: quantidade de dígitos por cargo.
+    function digitosDoCargo(cargo) {
+      return cargo in ['PRESIDENTE', 'GOVERNADOR'] ? 2 : (cargo == 'SENADOR' ? 3 : (cargo == 'DEPUTADOFEDERAL' ? 4 : 5));
+    }
+
+    // RN07: vice para Presidente e Governador, dois suplentes para Senador.
+    function complementosDoCargo(cargo) {
+      return cargo in ['PRESIDENTE', 'GOVERNADOR'] ? 1 : (cargo == 'SENADOR' ? 2 : 0);
+    }
+
+    function partidoValido(dados) {
+      return dados.keys().hasOnly(['numero', 'sigla', 'nome'])
+          && dados.numero is int && dados.numero >= 10 && dados.numero <= 99
+          && dados.sigla is string && dados.sigla.size() >= 1 && dados.sigla.size() <= 10
+          && dados.nome is string && dados.nome.size() >= 1 && dados.nome.size() <= 120;
+    }
+
+    function candidatoValido(dados) {
+      let partido = /databases/$(database)/documents/partido/$(string(dados.partido));
+      return dados.keys().hasOnly(['cargo', 'numero', 'nome', 'partido', 'foto', 'complementos'])
+          && cargoValido(dados.cargo)
+          && dados.numero is string && dados.numero.matches('[0-9]+')
+          && dados.numero.size() == digitosDoCargo(dados.cargo)
+          && dados.nome is string && dados.nome.size() >= 1 && dados.nome.size() <= 120
+          && dados.partido is int && exists(partido)
+          // RN04: o número do candidato começa com o número do partido.
+          && dados.numero.matches(string(get(partido).data.numero) + '[0-9]*')
+          // RN06: foto obrigatória, até 200 KB.
+          && dados.foto is bytes && dados.foto.size() > 0 && dados.foto.size() <= 204800
+          && dados.complementos is list && dados.complementos.size() == complementosDoCargo(dados.cargo);
+    }
+
+    // RN12: o voto não guarda eleitor nem horário, e o identificador é aleatório.
+    function votoValido(dados) {
+      return dados.keys().hasOnly(['cargo', 'tipo', 'candidato'])
+          && cargoValido(dados.cargo)
+          && dados.tipo in ['CANDIDATO', 'BRANCO', 'NULO']
+          && (dados.tipo == 'CANDIDATO') == ('candidato' in dados)
+          && (dados.tipo != 'CANDIDATO'
+              || get(/databases/$(database)/documents/candidato/$(string(dados.candidato))).data.cargo == dados.cargo);
+    }
+
+    match /partido/{identificador} {
+      allow read: if ehUrna() || ehAdministracao();
+      allow create, update: if ehAdministracao() && partidoValido(request.resource.data);
+      allow delete: if ehAdministracao();
+    }
+
+    match /candidato/{identificador} {
+      allow read: if ehUrna() || ehAdministracao();
+      allow create, update: if ehAdministracao() && candidatoValido(request.resource.data);
+      allow delete: if ehAdministracao();
+    }
+
+    match /voto/{identificador} {
+      allow create: if ehUrna() && votoValido(request.resource.data);
+      allow read: if ehAdministracao();
+    }
+  }
+}

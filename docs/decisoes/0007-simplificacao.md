@@ -16,7 +16,7 @@ do computador) e todos os itens do checklist, reduzindo a estrutura:
 | 8 classes de candidato, `FichaCandidato`, `Montador` e `FabricaCandidato` | `Candidato` e 3 subclasses; `Candidato.criar` escolhe a subclasse |
 | 7 classes do padrão State para a sessão | `SessaoVotacao` com um `enum` interno de situação |
 | 3 serviços e o catálogo no pacote `negocio` | só a `FachadaUrna` |
-| 3 interfaces e 9 classes de persistência | `RepositorioUrna` com uma implementação Supabase e uma em memória |
+| 3 interfaces e 9 classes de persistência | `RepositorioUrna` com uma implementação no banco (hoje Firebase, decisão 0008) e uma em memória |
 | 4 exceções | `UrnaException` |
 | 4 classes de som | `ReprodutorSom` |
 | 5 classes de tecla | `BotaoTecla` recebendo a ação |

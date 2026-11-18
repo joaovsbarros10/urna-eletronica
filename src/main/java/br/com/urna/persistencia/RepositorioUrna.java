@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * Onde a urna guarda partidos, candidatos e votos. Há uma implementação no
- * Supabase (JDBC) e outra em memória, para a demonstração e os testes.
+ * Firebase (Cloud Firestore) e outra em memória, para a demonstração e os testes.
  * Os erros chegam como {@link br.com.urna.excecao.UrnaException}.
  *
  * @author João

@@ -6,8 +6,8 @@ sequenceDiagram
     participant Sessao as SessaoVotacao
     participant Janela as JanelaUrna
     participant Fachada as FachadaUrna
-    participant Repositorio as RepositorioUrnaSupabase
-    participant Banco as Supabase
+    participant Repositorio as RepositorioUrnaFirebase
+    participant Banco as Firestore
 
     Eleitor->>Tecla: aperta um dígito
     Tecla->>Controlador: aoPressionarDigito(d)
@@ -22,11 +22,11 @@ sequenceDiagram
     Controlador->>Janela: atualizar(sessao) mostra FIM
     Controlador->>Fachada: registrarVotos(votos) em segundo plano
     Fachada->>Repositorio: gravarVotos(votos)
-    Repositorio->>Banco: transação com 5 INSERTs
+    Repositorio->>Banco: um commit com 5 gravações
     alt gravou
-        Banco-->>Repositorio: COMMIT
+        Banco-->>Repositorio: todas aceitas
         Controlador->>Controlador: 3 s depois, nova sessão
     else falhou
-        Banco-->>Repositorio: erro e ROLLBACK
+        Banco-->>Repositorio: erro, nenhuma gravada
         Controlador->>Janela: perguntarSeTentaNovamente()
     end

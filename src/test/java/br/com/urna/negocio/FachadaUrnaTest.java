@@ -50,6 +50,22 @@ class FachadaUrnaTest {
     }
 
     @Test
+    void deveCalcularPercentuais() {
+        votar("3105", "31042", "312", "31", "31");
+        votar("4721", "", "999", "", "47");
+        votar("4721", "", "312", "", "31");
+
+        ApuracaoCargo presidente = fachada.apurar(Cargo.PRESIDENTE);
+        assertEquals(66.667, presidente.calcularPercentualDoCandidato(buscar(Cargo.PRESIDENTE, "31")), 0.001);
+        assertEquals(33.333, presidente.calcularPercentualDoCandidato(buscar(Cargo.PRESIDENTE, "47")), 0.001);
+
+        ApuracaoCargo governador = fachada.apurar(Cargo.GOVERNADOR);
+        assertEquals(100.0, governador.calcularPercentualDoCandidato(buscar(Cargo.GOVERNADOR, "31")), 0.001);
+        assertEquals(66.667, governador.calcularPercentualDoTotal(governador.getVotosBrancos()), 0.001);
+        assertEquals(0.0, new ApuracaoCargo(Cargo.SENADOR, List.of()).calcularPercentualDoTotal(0), 0.001);
+    }
+
+    @Test
     void deveRecusarVotacaoIncompleta() {
         assertThrows(UrnaException.class, () -> fachada.registrarVotos(List.of(new VotoBranco(Cargo.SENADOR))));
     }

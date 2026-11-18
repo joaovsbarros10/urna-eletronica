@@ -15,8 +15,8 @@ como `URNA_BANCO_ENDERECO`) podem ter sublinhado, porque não são identificador
 ## Consequências
 - O código fica fora da convenção Java mais comum; a leitura de nomes longos piora.
 - O nome da constante de enum é gravado no banco (`Cargo.name()`), então trocar para
-  `DEPUTADO_FEDERAL` exige atualizar também os `check` de `banco/01-esquema.sql` e os dados.
+  `DEPUTADO_FEDERAL` exige atualizar também `banco/firestore.rules` e os dados.
 
 ## Alternativas consideradas
 `UPPER_SNAKE_CASE`, se o avaliador aceitar. A troca é mecânica: renomear as constantes e
-ajustar as listas de cargos dos scripts SQL.
+ajustar as listas de cargos das regras do Firestore.
