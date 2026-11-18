@@ -213,23 +213,29 @@ public final class PainelDisplay extends JPanel {
             rotulo.setText(linha);
             painelLinhasAdicionais.add(rotulo);
         }
-        exibirFoto(candidato.getFoto());
+        rotuloFoto.setBorder(BorderFactory.createLineBorder(TemaVisual.DETALHE));
+        rotuloFoto.setIcon(criarIconeDaFoto(candidato.getFoto()));
     }
 
-    private void exibirFoto(byte[] foto) {
-        rotuloFoto.setBorder(BorderFactory.createLineBorder(TemaVisual.DETALHE));
+    /**
+     * Reduz a foto para caber em 120 por 160 pixels, sem distorcer. Também é
+     * usado pelo cadastro de candidatos.
+     *
+     * @param foto bytes de uma imagem JPEG ou PNG
+     * @return ícone da foto, ou {@code null} se a imagem não puder ser lida
+     */
+    static ImageIcon criarIconeDaFoto(byte[] foto) {
         try {
             BufferedImage imagem = ImageIO.read(new ByteArrayInputStream(foto));
             if (imagem == null) {
-                rotuloFoto.setIcon(null);
-                return;
+                return null;
             }
             double escala = Math.min(120.0 / imagem.getWidth(), 160.0 / imagem.getHeight());
             int largura = Math.max(1, (int) (imagem.getWidth() * escala));
             int altura = Math.max(1, (int) (imagem.getHeight() * escala));
-            rotuloFoto.setIcon(new ImageIcon(imagem.getScaledInstance(largura, altura, Image.SCALE_SMOOTH)));
+            return new ImageIcon(imagem.getScaledInstance(largura, altura, Image.SCALE_SMOOTH));
         } catch (IOException erro) {
-            rotuloFoto.setIcon(null);
+            return null;
         }
     }
 }

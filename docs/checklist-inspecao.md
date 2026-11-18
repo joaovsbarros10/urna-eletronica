@@ -25,4 +25,4 @@
 ## Observação para o avaliador
 
 Constantes sem sublinhado (`DEPUTADOFEDERAL`): o item 3.0 pede só letras e dígitos. Se o
-avaliador preferir `DEPUTADO_FEDERAL`, a troca é mecânica (decisão 0003).
+avaliador preferir `DEPUTADO_FEDERAL`, a troca é mecânica (decisão 3 de `docs/decisoes.md`).

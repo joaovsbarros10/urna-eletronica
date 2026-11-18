@@ -19,7 +19,7 @@
 ## 1. O que é (1 min 30)
 
 Simulador de urna sem valor oficial, 100% Java: interface em **Swing**, **MVC com Fachada**,
-banco **Cloud Firestore no Firebase** pela **API REST**, testes **JUnit 5**. São 33 classes. A regra
+banco **Cloud Firestore no Firebase** pela **API REST**, testes **JUnit 5**. São 32 classes. A regra
 central: **o número do candidato começa com o número do partido**.
 
 ## 2. Demonstração (3 min)
@@ -43,7 +43,7 @@ No FIM, vá à administração, aba **Apuração**, e mostre o voto contado e a 
   **modelo não depende de ninguém**.
 - [FachadaUrna.java:31](../src/main/java/br/com/urna/negocio/FachadaUrna.java#L31): única porta
   de entrada das regras (item 2.0 do checklist).
-- [Aplicacao.java:69](../src/main/java/br/com/urna/Aplicacao.java#L69): a mesma Fachada roda sobre
+- [Aplicacao.java:67](../src/main/java/br/com/urna/Aplicacao.java#L67): a mesma Fachada roda sobre
   o Firebase ou sobre a memória; só muda o repositório. Trocar o Supabase pelo Firebase
   mexeu só no pacote `persistencia`.
 
@@ -77,13 +77,13 @@ No FIM, vá à administração, aba **Apuração**, e mostre o voto contado e a 
 
 ## 6. Banco de dados (2 min 30)
 
-- [ConexaoFirebase.java:89](../src/main/java/br/com/urna/persistencia/ConexaoFirebase.java#L89):
+- [RepositorioUrnaFirebase.java:90](../src/main/java/br/com/urna/persistencia/RepositorioUrnaFirebase.java#L90):
   o código do projeto vem do `urna.propriedades`, fora do Git; as requisições vão por HTTPS.
-- [RepositorioUrnaFirebase.java:143](../src/main/java/br/com/urna/persistencia/RepositorioUrnaFirebase.java#L143):
+- [RepositorioUrnaFirebase.java:202](../src/main/java/br/com/urna/persistencia/RepositorioUrnaFirebase.java#L202):
   os cinco votos num único **commit**: entram todos ou nenhum.
-- [RepositorioUrnaFirebase.java:127](../src/main/java/br/com/urna/persistencia/RepositorioUrnaFirebase.java#L127):
+- [RepositorioUrnaFirebase.java:187](../src/main/java/br/com/urna/persistencia/RepositorioUrnaFirebase.java#L187):
   o Firestore não tem chave estrangeira, então o repositório confere os votos antes de excluir.
-- [ControladorVotacao.java:173](../src/main/java/br/com/urna/controle/ControladorVotacao.java#L173):
+- [ControladorVotacao.java:166](../src/main/java/br/com/urna/controle/ControladorVotacao.java#L166):
   se a internet cair, os votos ficam na memória e a urna tenta de novo.
 - [banco/firestore.rules](../banco/firestore.rules): o banco só aceita dados válidos, o voto não
   tem eleitor nem horário (sigilo) e nenhum voto pode ser alterado ou apagado.
@@ -101,6 +101,25 @@ No FIM, vá à administração, aba **Apuração**, e mostre o voto contado e a 
 | E se a internet cair? | Os votos ficam na memória e a urna oferece nova tentativa. |
 | Como garante o sigilo? | O voto não tem eleitor, horário nem sequência; o identificador é aleatório. |
 | As teclas consultam o banco? | Não. Os candidatos são carregados uma vez na abertura. |
-| Por que Firebase, se o PDF pedia Supabase? | Decisão 0008. Como tudo passa pela interface `RepositorioUrna`, a troca mexeu só em duas classes. |
-| Por que não usou o SDK do Firebase? | A API REST mantém o jar pequeno e permite regras de segurança diferentes para a urna e a administração (versão com login). |
+| Por que Firebase, se o PDF pedia Supabase? | Decisão 1 de `docs/decisoes.md`. Como tudo passa pela interface `RepositorioUrna`, a troca mexeu só no pacote `persistencia`. |
+| Por que não usou o SDK do Firebase? | O Admin SDK dá acesso total ao banco e aumentaria o jar em uns 40 MB; a API REST só precisa da Gson. |
 | Por que `DEPUTADOFEDERAL` sem sublinhado? | O item 3.0 pede só letras e dígitos. |
+
+## Testes manuais (antes de apresentar)
+
+Os passos 2 a 7 também funcionam no modo demonstração (`java -jar urna.jar demonstracao`).
+
+| # | Passos | Resultado esperado |
+|---|---|---|
+| 1 | Abrir a urna sem internet | Pergunta se tenta de novo e depois se usa os dados de demonstração |
+| 2 | Deputado Federal: digitar 3105 | Tiago Moura, partido PAU e a foto |
+| 3 | Presidente: digitar 99 | NÚMERO ERRADO e VOTO NULO |
+| 4 | Presidente: digitar 31 e apertar CORRIGE | Caixas limpas, continua em Presidente |
+| 5 | Digitar um dígito e apertar BRANCO | Nada acontece |
+| 6 | Apertar CONFIRMA com número incompleto | Nada acontece e nenhum som de confirmação |
+| 7 | Votar nos cinco cargos | Tela FIM, som longo e os votos aparecem na aba Apuração, com a porcentagem |
+| 8 | Desligar a internet antes do último CONFIRMA | Mensagem de falha e pergunta de nova tentativa; ao religar, os votos entram |
+| 9 | Senador: digitar 312 | Clara Duarte com os dois suplentes |
+| 10 | Usar o teclado do computador | Dígitos, Enter e Backspace funcionam como as teclas da tela |
+| 11 | Cadastrar candidato com foto maior que 200 KB e salvar | Mensagem pedindo foto de até 200 KB |
+| 12 | Excluir partido que tem candidatos | Mensagem de erro; o partido continua na lista |

@@ -80,27 +80,24 @@ public class ControladorVotacao {
      * @param digito dígito de '0' a '9'
      */
     public void aoPressionarDigito(char digito) {
-        if (estaRecebendoVotos()) {
-            som.tocarTecla();
-            sessao.digitar(digito);
-            visao.atualizar(sessao);
-        }
+        tratarTecla(() -> sessao.digitar(digito));
     }
 
     /** Trata a tecla BRANCO. */
     public void aoPressionarBranco() {
-        if (estaRecebendoVotos()) {
-            som.tocarTecla();
-            sessao.votarEmBranco();
-            visao.atualizar(sessao);
-        }
+        tratarTecla(() -> sessao.votarEmBranco());
     }
 
     /** Trata a tecla CORRIGE. */
     public void aoPressionarCorrige() {
-        if (estaRecebendoVotos()) {
+        tratarTecla(() -> sessao.corrigir());
+    }
+
+    /** Durante a votação, toca o som da tecla, aplica a ação na sessão e redesenha a tela. */
+    private void tratarTecla(Runnable acao) {
+        if (sessao != null && !sessao.estaEncerrada()) {
             som.tocarTecla();
-            sessao.corrigir();
+            acao.run();
             visao.atualizar(sessao);
         }
     }
@@ -132,10 +129,6 @@ public class ControladorVotacao {
 
     public boolean possuiVotosNaoGravados() {
         return gravacaoPendente;
-    }
-
-    private boolean estaRecebendoVotos() {
-        return sessao != null && !sessao.estaEncerrada();
     }
 
     private void gravarVotos() {

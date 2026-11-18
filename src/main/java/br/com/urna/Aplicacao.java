@@ -10,7 +10,6 @@ import br.com.urna.controle.ControladorAdministracao;
 import br.com.urna.controle.ControladorVotacao;
 import br.com.urna.excecao.UrnaException;
 import br.com.urna.negocio.FachadaUrna;
-import br.com.urna.persistencia.ConexaoFirebase;
 import br.com.urna.persistencia.RepositorioUrnaFirebase;
 import br.com.urna.persistencia.RepositorioUrnaMemoria;
 import br.com.urna.som.ReprodutorSom;
@@ -56,17 +55,16 @@ public final class Aplicacao {
                 abrirAdministracao(fachada, WindowConstants.DISPOSE_ON_CLOSE);
                 abrirUrna(fachada, null);
             } else if (opcoes.contains("administracao")) {
-                abrirAdministracao(criarFachada("URNA_ADMIN_BANCO_"), WindowConstants.EXIT_ON_CLOSE);
+                abrirAdministracao(criarFachada(), WindowConstants.EXIT_ON_CLOSE);
             } else {
-                abrirUrna(criarFachada("URNA_BANCO_"),
-                        new FachadaUrna(RepositorioUrnaMemoria.criarComDadosDeDemonstracao()));
+                abrirUrna(criarFachada(), new FachadaUrna(RepositorioUrnaMemoria.criarComDadosDeDemonstracao()));
             }
         });
     }
 
-    private static FachadaUrna criarFachada(String prefixoConfiguracao) {
+    private static FachadaUrna criarFachada() {
         try {
-            return new FachadaUrna(new RepositorioUrnaFirebase(ConexaoFirebase.carregar(prefixoConfiguracao)));
+            return new FachadaUrna(RepositorioUrnaFirebase.carregar());
         } catch (UrnaException erro) {
             JOptionPane.showMessageDialog(null, erro.getMessage() + "\n\nA urna vai abrir com dados de demonstração.");
             return new FachadaUrna(RepositorioUrnaMemoria.criarComDadosDeDemonstracao());

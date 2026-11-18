@@ -14,16 +14,11 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -192,12 +187,7 @@ public final class PainelCadastroCandidato extends PainelAdministrativo {
             return;
         }
         try {
-            byte[] bytes = Files.readAllBytes(seletor.getSelectedFile().toPath());
-            if (bytes.length > 200 * 1024) {
-                exibirMensagem("A foto tem " + bytes.length / 1024 + " KB; escolha uma de até 200 KB.");
-                return;
-            }
-            definirFoto(bytes);
+            definirFoto(Files.readAllBytes(seletor.getSelectedFile().toPath()));
         } catch (IOException erro) {
             exibirMensagem("Não foi possível ler a foto.");
         }
@@ -205,22 +195,8 @@ public final class PainelCadastroCandidato extends PainelAdministrativo {
 
     private void definirFoto(byte[] bytes) {
         foto = bytes;
-        rotuloFoto.setIcon(null);
-        rotuloFoto.setText("sem foto");
-        if (bytes == null) {
-            return;
-        }
-        try {
-            BufferedImage imagem = ImageIO.read(new ByteArrayInputStream(bytes));
-            if (imagem != null) {
-                double escala = Math.min(120.0 / imagem.getWidth(), 160.0 / imagem.getHeight());
-                rotuloFoto.setText("");
-                rotuloFoto.setIcon(new ImageIcon(imagem.getScaledInstance(Math.max(1, (int) (imagem.getWidth() * escala)),
-                        Math.max(1, (int) (imagem.getHeight() * escala)), Image.SCALE_SMOOTH)));
-            }
-        } catch (IOException erro) {
-            rotuloFoto.setText("foto inválida");
-        }
+        rotuloFoto.setIcon(bytes == null ? null : PainelDisplay.criarIconeDaFoto(bytes));
+        rotuloFoto.setText(rotuloFoto.getIcon() != null ? "" : bytes == null ? "sem foto" : "foto inválida");
     }
 
     private void salvar() {

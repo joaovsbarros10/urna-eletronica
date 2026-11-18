@@ -1,12 +1,11 @@
 // =====================================================================
 // Urna Eletrônica - firestore.rules
-// Regras de segurança do Cloud Firestore, versão SEM login (fase atual).
-// Cole este arquivo inteiro em Firestore Database > Regras e clique em Publicar.
+// Regras de segurança do Cloud Firestore. Cole este arquivo inteiro em
+// Firestore Database > Regras e clique em Publicar.
 //
 // Sem login, o banco não sabe quem é a urna e quem é a administração, então
 // as regras protegem os DADOS: só aceitam partido, candidato e voto válidos,
 // e nenhum voto pode ser alterado ou apagado depois de gravado.
-// A versão com dois usuários está em firestore-com-login.rules.
 // =====================================================================
 rules_version = '2';
 

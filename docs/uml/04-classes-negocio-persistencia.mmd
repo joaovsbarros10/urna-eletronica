@@ -31,16 +31,14 @@ classDiagram
     }
 
     class RepositorioUrnaFirebase {
-        -ConexaoFirebase conexao
+        -String caminhoDosDocumentos
+        +carregar()$ RepositorioUrnaFirebase
+        -listar(String, String) List~JsonObject~
+        -consultarVotos(String, JsonObject, int) List~JsonObject~
+        -gravar(String, JsonObject...) void
     }
     class RepositorioUrnaMemoria {
         +criarComDadosDeDemonstracao()$ RepositorioUrnaMemoria
-    }
-    class ConexaoFirebase {
-        +carregar(String prefixo)$ ConexaoFirebase
-        +listar(String, List~String~, String) List~JsonObject~
-        +consultar(JsonObject, String) List~JsonObject~
-        +gravar(JsonArray, String) void
     }
     class ReprodutorSom {
         +tocarTecla() void
@@ -52,6 +50,5 @@ classDiagram
     FachadaUrna --> RepositorioUrna
     RepositorioUrna <|.. RepositorioUrnaFirebase
     RepositorioUrna <|.. RepositorioUrnaMemoria
-    RepositorioUrnaFirebase --> ConexaoFirebase
     FachadaUrna ..> UrnaException : lança
-    ConexaoFirebase ..> UrnaException : lança
+    RepositorioUrnaFirebase ..> UrnaException : lança
