@@ -25,3 +25,6 @@ desktop.ini
 
 # JAR copiado para a raiz para abrir com os atalhos (gerado pelo build)
 /urna.jar
+
+# Enunciado do trabalho (fica so na maquina)
+/*.pdf

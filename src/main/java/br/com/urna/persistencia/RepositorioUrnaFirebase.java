@@ -48,8 +48,11 @@ import java.util.UUID;
  */
 public class RepositorioUrnaFirebase implements RepositorioUrna {
 
-    /** Arquivo local, fora do Git, com o código do projeto no Firebase. */
+    /** Arquivo opcional, na pasta de onde a urna é aberta, para usar outro projeto do Firebase. */
     public static final String ARQUIVOPROPRIEDADES = "urna.propriedades";
+
+    /** Projeto do Firebase usado quando não há {@code urna.propriedades}. */
+    public static final String PROJETOPADRAO = "urna-13db0";
 
     private static final String ENDERECOFIRESTORE = "https://firestore.googleapis.com/v1/";
 
@@ -82,10 +85,11 @@ public class RepositorioUrnaFirebase implements RepositorioUrna {
 
     /**
      * Cria o repositório com o projeto {@code URNA_FIREBASE_PROJETO} do arquivo
-     * {@code urna.propriedades}.
+     * {@code urna.propriedades}, se ele existir; senão, com o {@link #PROJETOPADRAO}.
+     * Assim o jar funciona em qualquer máquina, sem configuração.
      *
      * @return repositório configurado
-     * @throws UrnaException se o arquivo ou a chave não existirem
+     * @throws UrnaException se o arquivo existir mas não puder ser lido
      */
     public static RepositorioUrnaFirebase carregar() {
         Properties propriedades = new Properties();
@@ -97,11 +101,7 @@ public class RepositorioUrnaFirebase implements RepositorioUrna {
                 throw new UrnaException("Não foi possível ler o arquivo " + ARQUIVOPROPRIEDADES + ".", erro);
             }
         }
-        String projeto = propriedades.getProperty("URNA_FIREBASE_PROJETO", "").strip();
-        if (projeto.isEmpty()) {
-            throw new UrnaException("Defina URNA_FIREBASE_PROJETO no arquivo " + ARQUIVOPROPRIEDADES + ".");
-        }
-        return new RepositorioUrnaFirebase(projeto);
+        return new RepositorioUrnaFirebase(propriedades.getProperty("URNA_FIREBASE_PROJETO", PROJETOPADRAO).strip());
     }
 
     // ---- Partidos ----

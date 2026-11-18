@@ -4,35 +4,41 @@ Simulador de urna eletrônica **sem valor oficial**, feito para estudo. Aplicaç
 escrita só em Java: interface em **Swing**, arquitetura **MVC com Fachada** e votos gravados
 no **Firebase (Cloud Firestore)** pela API REST. A votação segue a ordem Deputado Federal,
 Deputado Estadual, Senador, Governador e Presidente, com as teclas BRANCO, CORRIGE e
-CONFIRMA e os sons de tecla, confirmação e fim. Partidos, candidatos e fotos são fictícios.
+CONFIRMA e os sons de tecla, confirmação e fim. A apuração mostra votos e porcentagens.
 
-![Urna com candidato encontrado](docs/urna.png)
+## Como usar em qualquer computador (Windows 10 ou 11)
 
-## Como abrir
+Na página de [Releases](../../releases/latest), baixe um dos arquivos:
 
-Requisito: Java 17 ou superior.
+| Arquivo | O que faz |
+|---|---|
+| `Urna.cmd` | Abre a urna de votação |
+| `Urna Administracao.cmd` | Abre o painel administrativo (cadastro de partidos e candidatos e apuração) |
+| `Urna-Windows.zip` | O programa completo: descompacte e abra `Urna.exe` ou `Administracao.exe` |
 
-| No Windows | Comando | Abre | Dados |
-|---|---|---|---|
-| `Abrir Urna.cmd` | `java -jar urna.jar` | urna de votação | Firebase |
-| `Abrir Administracao.cmd` | `java -jar urna.jar administracao` | cadastro e apuração | Firebase |
-| — | `java -jar urna.jar demonstracao` | urna e administração juntas | memória, sem internet |
+Os dois `.cmd` funcionam sozinhos, sem a pasta do projeto e sem Java instalado: na primeira
+vez baixam a urna (com o Java incluído, cerca de 27 MB) para `%LOCALAPPDATA%\UrnaEletronica`
+e, nas próximas, só baixam de novo quando sai uma versão nova. Se o Windows avisar que o
+arquivo veio da internet, clique em **Mais informações > Executar assim mesmo**.
 
-Se o Firebase não estiver configurado ou não responder, a urna oferece os dados de
-demonstração. Teclado do computador: dígitos, **Enter** = CONFIRMA, **Backspace** = CORRIGE.
+Teclado do computador: dígitos, **Enter** = CONFIRMA, **Backspace** = CORRIGE. Se o Firebase
+não responder, a urna oferece os dados de demonstração.
 
-No modo demonstração: Deputado Federal `3105`, Deputado Estadual `31042`, Senador `312`,
-Governador `31`, Presidente `47`. Partido inexistente (`99`) dá NÚMERO ERRADO; partido
-existente sem candidato (`3199`) dá CANDIDATO INEXISTENTE.
+Quem já tem Java 17 ou superior também pode usar o `urna.jar`:
 
-## Configurar o Firebase
+| Comando | Abre |
+|---|---|
+| `java -jar urna.jar` | urna de votação |
+| `java -jar urna.jar administracao` | cadastro e apuração |
+| `java -jar urna.jar demonstracao` | urna e administração juntas, com dados em memória, sem internet |
 
-1. No [console do Firebase](https://console.firebase.google.com), crie um projeto e um banco
-   **Cloud Firestore**.
-2. Em **Firestore Database > Regras**, cole `banco/firestore.rules` e publique.
-3. Crie o arquivo `urna.propriedades` na pasta do projeto (fica fora do Git) com uma linha:
-   `URNA_FIREBASE_PROJETO=<código do projeto>`.
-4. Cadastre partidos e candidatos pela administração.
+## Banco de dados
+
+A urna usa o projeto Firebase `urna-13db0`, já configurado dentro do programa. As regras de
+segurança do Firestore ficam em `banco/firestore.rules`: só aceitam dados válidos e nenhum voto
+pode ser alterado ou apagado. Para usar outro projeto, crie um banco Cloud Firestore, publique
+essas regras e coloque um arquivo `urna.propriedades` na pasta de onde a urna é aberta, com a
+linha `URNA_FIREBASE_PROJETO=<código do projeto>`.
 
 ## Compilar e testar
 
@@ -41,9 +47,8 @@ mvnw.cmd verify
 ```
 
 Compila, roda os testes JUnit 5, confere a cobertura mínima de 80% no modelo e no negócio e
-gera `target/urna.jar`; copie-o para a raiz para usar com os atalhos. Se o Maven falhar com
-`PKIX path building failed` (antivírus inspecionando HTTPS), rode antes
-`$env:MAVEN_OPTS = "-Djavax.net.ssl.trustStoreType=Windows-ROOT"`.
+gera `target/urna.jar`. Se o Maven falhar com `PKIX path building failed` (antivírus
+inspecionando HTTPS), rode antes `$env:MAVEN_OPTS = "-Djavax.net.ssl.trustStoreType=Windows-ROOT"`.
 
 ## Estrutura
 
@@ -63,18 +68,8 @@ src/main/java/br/com/urna/
 A visão chama o controle, o controle chama a `FachadaUrna`, a Fachada usa o repositório, e o
 modelo não depende de ninguém.
 
-## Documentação
-
-- [docs/Documentacao-Tecnica-Urna.pdf](docs/Documentacao-Tecnica-Urna.pdf): todas as classes,
-  métodos, fluxos e o banco.
-- [docs/roteiro-apresentacao.md](docs/roteiro-apresentacao.md): roteiro de 15 minutos e testes manuais.
-- [docs/checklist-inspecao.md](docs/checklist-inspecao.md): evidência de cada item do checklist.
-- [docs/decisoes.md](docs/decisoes.md): decisões do projeto, como a troca do Supabase pelo
-  Firebase (o PDF pedia Supabase via JDBC no RNF08).
-- [docs/uml/](docs/uml/): diagramas em Mermaid (abra em [mermaid.live](https://mermaid.live)).
-
 ## Limitações
 
-- Sem login: quem souber o código do projeto consegue ler os dados e mexer no cadastro.
+- Sem login: quem tiver o programa consegue abrir a administração e mexer no cadastro.
   Ninguém consegue alterar ou apagar votos.
 - Fora do escopo: identificação do eleitor, voto de legenda, segundo turno.
