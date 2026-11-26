@@ -35,25 +35,27 @@ Quem já tem Java 17 ou superior também pode usar o `urna.jar`:
 ## Banco de dados
 
 A urna usa o projeto Firebase `urna-13db0`, já configurado dentro do programa. As regras de
-segurança do Firestore ficam em `banco/firestore.rules`: só aceitam dados válidos e nenhum voto
+segurança do Firestore ficam em `firestore.rules`: só aceitam dados válidos e nenhum voto
 pode ser alterado ou apagado. Para usar outro projeto, crie um banco Cloud Firestore, publique
 essas regras e coloque um arquivo `urna.propriedades` na pasta de onde a urna é aberta, com a
 linha `URNA_FIREBASE_PROJETO=<código do projeto>`.
 
-## Compilar e testar
+## Compilar
 
 ```bash
-mvnw.cmd verify
+mvnw.cmd package
 ```
 
-Compila, roda os testes JUnit 5, confere a cobertura mínima de 80% no modelo e no negócio e
-gera `target/urna.jar`. Se o Maven falhar com `PKIX path building failed` (antivírus
-inspecionando HTTPS), rode antes `$env:MAVEN_OPTS = "-Djavax.net.ssl.trustStoreType=Windows-ROOT"`.
+Compila o código e gera `target/urna.jar`. Se o Maven falhar com `PKIX path building failed`
+(antivírus inspecionando HTTPS), rode antes `$env:MAVEN_OPTS = "-Djavax.net.ssl.trustStoreType=Windows-ROOT"`.
 
 ## Estrutura
 
 ```
-src/main/java/br/com/urna/
+firestore.rules       regras de segurança do banco
+Urna.cmd              abre a urna (baixa a versão mais recente do GitHub)
+Urna-Administracao.cmd  abre a administração
+src/urna/
 ├── Aplicacao.java    ponto de entrada: monta e liga as peças
 ├── modelo/           Cargo, Partido, Candidato (+3 subclasses), Voto (+3 subclasses),
 │                     ApuracaoCargo e SessaoVotacao
